@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name" translatable="false">Massage Application</string>
+    <string name="message">Messages</string>
+    <string name="message_app_for_instant_and_secure_communication">Your World, One Message Away</string>
+    <string name="archive">Archive</string>
+    <string name="block_message">Block Message</string>
+    <string name="schedule_message">Schedule Message</string>
+    <string name="language">Language</string>
+    <string name="share_app">Share App</string>
+    <string name="rate_us">Rate us</string>
+    <string name="privacy">Privacy</string>
+    <string name="done" translatable="false">Done</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="message">संदेश</string>
+    <string name="message_app_for_instant_and_secure_communication">त्वरित और सुरक्षित संचार के लिए संदेश ऐप।</string>
+    <string name="archive">संग्रह</string>
+    <string name="block_message">संदेश अवरोधित करें</string>
+    <string name="schedule_message">संदेश अनुसूची</string>
+    <string name="language">भाषा</string>
+    <string name="share_app">ऐप साझा करें</string>
+    <string name="rate_us">हमें रेट करें</string>
+    <string name="privacy">गोपनीयता</string>
+</resources>

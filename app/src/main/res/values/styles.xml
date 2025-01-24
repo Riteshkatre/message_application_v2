@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="LightTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Define light theme colors -->
+        <item name="colorPrimary">#FFFFFF</item>
+        <item name="colorPrimaryDark">#E0E0E0</item>
+        <item name="colorAccent">#000000</item>
+    </style>
+
+    <style name="DarkTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <!-- Define dark theme colors -->
+        <item name="colorPrimary">#000000</item>
+        <item name="colorPrimaryDark">#121212</item>
+        <item name="colorAccent">#FFFFFF</item>
+    </style>
+
+
+</resources>

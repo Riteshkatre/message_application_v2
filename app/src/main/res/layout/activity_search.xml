@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Search">
+
+    <LinearLayout
+        android:id="@+id/llOne"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="horizontal"
+        android:padding="@dimen/_10ssp">
+
+        <ImageView
+            android:id="@+id/ivMsgBack"
+            android:layout_width="@dimen/_20ssp"
+            android:layout_height="@dimen/_20ssp"
+            android:src="@drawable/back"
+            app:tint="@color/black" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10ssp"
+            android:text="Search"
+            android:textColor="@color/black"
+            android:textSize="@dimen/_15ssp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@+id/llOne"
+        android:background="@color/translucent" />
+
+    <LinearLayout
+        android:id="@+id/ll1"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_55sdp"
+        android:layout_below="@id/view"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:padding="@dimen/_7sdp">
+
+        <LinearLayout
+            android:id="@+id/ll3"
+            android:layout_width="@dimen/_230sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginLeft="@dimen/_13sdp"
+            android:background="@drawable/shape">
+
+            <ImageView
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_11sdp"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10ssp"
+                android:src="@drawable/search"
+                app:tint="@color/translucent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_30ssp"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10ssp"
+                android:text="|"
+                android:textColor="@color/translucent"
+                android:textSize="@dimen/_20ssp" />
+
+            <EditText
+                android:id="@+id/etSearchMsg"
+                android:layout_width="@dimen/_160sdp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10ssp"
+                android:background="@null"
+                android:hint="Search..."
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:textColor="@color/black"
+                android:textColorHint="@color/translucent"
+                android:textSize="@dimen/_12ssp" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="@dimen/_27sdp"
+            android:layout_height="@dimen/_35sdp"
+            android:layout_marginLeft="@dimen/_10sdp"
+            android:src="@drawable/keyboard" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSearchMsg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:layout_below="@id/ll1"
+        android:padding="7dp" />
+
+</RelativeLayout>
