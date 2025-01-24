@@ -5,6 +5,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,16 +18,27 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     private ArrayList<SmsModel> smsList;
     private ArrayList<SmsModel> searchList;
     private OnItemClickListener listener;
+    private Set<Integer> selectedItems;
+    private boolean isSelectionMode = false;
+
+
+    public void enableSelectionMode(boolean enable) {
+        isSelectionMode = enable;
+    }
+
 
     public interface OnItemClickListener {
-        void onItemClick(int position);
+        void onItemClick(int position,SmsModel smsModel);
+        void longClickListener(int position,SmsModel smsModel);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -34,9 +46,12 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     }
 
 
+
+
     public SmsAdapter(ArrayList<SmsModel> smsList) {
         this.smsList = smsList;
         this.searchList = smsList;
+        this.selectedItems = new HashSet<>();
     }
 
     @NonNull
@@ -73,17 +88,45 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             holder.nameLay.setBackgroundResource(R.drawable.circle_background); // Ensure the shape is applied
             GradientDrawable background = (GradientDrawable) holder.nameLay.getBackground();
             background.setColor(color); // Set the dynamic color
-
             holder.itemView.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onItemClick(position);
+                if (isSelectionMode) {
+                    // If in selection mode, toggle the item selection
+                    if (selectedItems.contains(position)) {
+                        selectedItems.remove(position);  // Unselect if already selected
+                    } else {
+                        selectedItems.add(position);  // Select the item
+                    }
+                    notifyDataSetChanged();  // Update the UI
+                } else {
+                    // Normal behavior (only when not in selection mode)
+                    if (listener != null) {
+                        listener.onItemClick(position, sms);
+                    }
                 }
             });
+
+            holder.itemView.setOnLongClickListener(v -> {
+                enableSelectionMode(true);  // Enable selection mode
+                selectedItems.add(position);  // Select the item on long press
+                notifyDataSetChanged();  // Update the UI
+                return true;  // Prevent item click from triggering
+            });
+
         }
 
         // Set formatted date
         String formattedDate = getFormattedDate(sms.getDateMillis());
         holder.dateTextView.setText(formattedDate);
+
+        if (selectedItems.contains(position)) {
+            holder.checkmarkIcon.setVisibility(View.VISIBLE);  // Show checkmark icon
+        } else {
+            holder.checkmarkIcon.setVisibility(View.GONE);  // Hide checkmark icon
+        }
+    }
+
+    public int getSelectedItemCount() {
+        return selectedItems.size();
     }
 
 
@@ -95,6 +138,8 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     static class SmsViewHolder extends RecyclerView.ViewHolder {
         TextView senderTextView, messageTextView, dateTextView, senderInitialTextView;
         LinearLayout nameLay;
+        ImageView checkmarkIcon;
+
 
         public SmsViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,6 +148,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             dateTextView = itemView.findViewById(R.id.date_text_view);
             senderInitialTextView = itemView.findViewById(R.id.sender_initial_text_view);
             nameLay = itemView.findViewById(R.id.nameLay);
+            checkmarkIcon = itemView.findViewById(R.id.checkmarkIcon);
         }
     }
 

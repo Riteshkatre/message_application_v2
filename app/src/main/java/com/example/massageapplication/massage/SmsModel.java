@@ -8,6 +8,11 @@ public class SmsModel {
     private long dateMillis;
     private String status;
 
+    private boolean isBlocked;
+
+    private boolean isPinned;
+    private int originalPosition;
+
     public SmsModel(String sender, String body, String date, String time, long dateMillis, String status) {
         this.sender = sender;
         this.body = body;
@@ -15,6 +20,30 @@ public class SmsModel {
         this.time = time;
         this.dateMillis = dateMillis;
         this.status = status;
+    }
+
+    public boolean isPinned() {
+        return isPinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        isPinned = pinned;
+    }
+
+    public int getOriginalPosition() {
+        return originalPosition;
+    }
+
+    public void setOriginalPosition(int originalPosition) {
+        this.originalPosition = originalPosition;
+    }
+
+    public boolean isBlocked() {
+        return isBlocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
     }
 
     public String getSender() {

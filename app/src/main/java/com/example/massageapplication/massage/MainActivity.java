@@ -21,7 +21,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -55,15 +54,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     private final ArrayList<SmsModel> smsList = new ArrayList<>();
     private final Map<String, String> contactCache = new HashMap<>();
+    private final Object smsListLock = new Object(); // Add lock object
+    Boolean isSearchActive = false;
     private ActivityMainBinding b;
     private SmsAdapter smsAdapter;
     private ActivityResultLauncher<Intent> sendSmsLauncher;
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     private SmsListener smsListener;
     private BroadcastReceiver newSmsReceiver;
-    private final Object smsListLock = new Object(); // Add lock object
-    Boolean isSearchActive = false;
-
 
     @SuppressLint({"WrongViewCast",})
     @Override
@@ -106,19 +104,48 @@ public class MainActivity extends AppCompatActivity {
             loadMessages();
         }
 
-        smsAdapter.setOnItemClickListener(position -> {
-            SmsModel selectedSms = smsList.get(position);
-            Intent intent = new Intent(MainActivity.this, MessageActivity.class);
-            intent.putExtra("address", selectedSms.getSender());
-            intent.putExtra("date", selectedSms.getSender());
-            sendSmsLauncher.launch(intent);
+        smsAdapter.setOnItemClickListener(new SmsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, SmsModel smsModel) {
+                if (smsAdapter.getSelectedItemCount() > 0) {
+                    // Prevent redirection if in selection mode
+                    return;
+                }
+                // Redirection to MessageActivity if no items are selected
+                Intent intent = new Intent(MainActivity.this, MessageActivity.class);
+                intent.putExtra("address", smsModel.getSender());
+                intent.putExtra("date", smsModel.getSender());
+                sendSmsLauncher.launch(intent);
+            }
+
+            @Override
+            public void longClickListener(int position, SmsModel smsModel) {
+                // Show the main archive layout when long pressed
+                b.mainArchiveLayout.setVisibility(View.VISIBLE);
+                b.layToolBar.setVisibility(View.GONE);
+            }
         });
 
+    /*    if (smsAdapter.getSelectedItemCount() > 0) {
+            b.mainArchiveLayout.setVisibility(View.VISIBLE);
+            b.layToolBar.setVisibility(View.GONE);
+        } else {
+            b.mainArchiveLayout.setVisibility(View.GONE);
+            b.layToolBar.setVisibility(View.GONE);
+        }*/
+
+        b.layArchive.icClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                b.mainArchiveLayout.setVisibility(View.GONE);
+                b.layToolBar.setVisibility(View.VISIBLE);
+            }
+        });
 
         b.ivSearchMsg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent (MainActivity.this, Search.class);
+                Intent intent = new Intent(MainActivity.this, Search.class);
                 startActivity(intent);
                 overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 

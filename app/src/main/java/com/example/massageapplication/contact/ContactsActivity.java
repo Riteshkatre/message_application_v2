@@ -35,6 +35,7 @@ public class ContactsActivity extends AppCompatActivity {
     private ContactsAdapter adapter;
     private ArrayList<Contact> contacts;
     private boolean isKeyboardModeText = true;
+
     private final TextWatcher numberOnlyWatcher = new TextWatcher() {
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -50,6 +51,17 @@ public class ContactsActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {}
     };
+
+    private final ActivityResultLauncher<Intent> messageLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent resultIntent = new Intent();
+                    setResult(RESULT_OK, resultIntent);
+                    finish();
+                }
+            }
+    );
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -131,7 +143,7 @@ public class ContactsActivity extends AppCompatActivity {
     }
 
     private void switchToDialPadMode() {
-        ivKeyboard.setImageResource(R.drawable.dialpad); // Replace with dial pad icon resource
+        ivKeyboard.setImageResource(R.drawable.dialpad);
         etContactSearch.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
         etContactSearch.setHint("Enter numbers");
         etContactSearch.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
@@ -140,7 +152,7 @@ public class ContactsActivity extends AppCompatActivity {
     }
 
     private void switchToTextMode() {
-        ivKeyboard.setImageResource(R.drawable.keyboard); // Replace with keyboard icon resource
+        ivKeyboard.setImageResource(R.drawable.keyboard);
         etContactSearch.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
         etContactSearch.setHint("Search contacts");
         etContactSearch.setFilters(new InputFilter[]{});
@@ -184,14 +196,13 @@ public class ContactsActivity extends AppCompatActivity {
             Intent intent = new Intent(this, MessageActivity.class);
             intent.putExtra("address", contact.getName());
             intent.putExtra("date", new Date().toString());
-            startActivity(intent);
-            finish();
+            messageLauncher.launch(intent);
         });
     }
 
     private void filterContacts(String query) {
         ArrayList<Contact> filteredContacts = new ArrayList<>();
-        HashSet<String> phoneSet = new HashSet<>(); // To track unique phone numbers
+        HashSet<String> phoneSet = new HashSet<>();
 
         for (Contact contact : contacts) {
             String normalizedPhone = contact.getPhone().replaceAll("\\s", "");
@@ -200,11 +211,10 @@ public class ContactsActivity extends AppCompatActivity {
                     normalizedPhone.contains(query)) &&
                     !phoneSet.contains(normalizedPhone)) {
                 filteredContacts.add(contact);
-                phoneSet.add(normalizedPhone); // Mark this phone number as added
+                phoneSet.add(normalizedPhone);
             }
         }
 
         adapter.filterContacts(query);
     }
-
 }
