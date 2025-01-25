@@ -26,33 +26,39 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int VIEW_TYPE_OTHER_MESSAGE = 2;
 
     public MessageAdapter(ArrayList<SmsModel> messageList) {
-        this.messageList = messageList;
+        this.messageList = messageList != null ? messageList : new ArrayList<>();
     }
 
     @Override
     public int getItemViewType(int position) {
-        SmsModel sms = messageList.get(position);
-        if ("You".equalsIgnoreCase(sms.getSender())) {
-            return VIEW_TYPE_MY_MESSAGE;
-        } else {
-            return VIEW_TYPE_OTHER_MESSAGE;
+        // Guard against invalid position
+        if (position < 0 || position >= messageList.size()) {
+            return VIEW_TYPE_OTHER_MESSAGE; // Default case to avoid crashes
         }
+
+        SmsModel sms = messageList.get(position);
+        return "You".equalsIgnoreCase(sms.getSender()) ? VIEW_TYPE_MY_MESSAGE : VIEW_TYPE_OTHER_MESSAGE;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view;
         if (viewType == VIEW_TYPE_MY_MESSAGE) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_my_message, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_my_message, parent, false);
             return new MyMessageViewHolder(view);
         } else {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_other_message, parent, false);
+            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_other_message, parent, false);
             return new OtherMessageViewHolder(view);
         }
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (position < 0 || position >= messageList.size()) {
+            return; // Avoid binding with an invalid position
+        }
+
         SmsModel sms = messageList.get(position);
 
         if (holder instanceof MyMessageViewHolder) {
@@ -79,6 +85,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public int getItemCount() {
         return messageList.size();
+    }
+
+    public void updateMessages(ArrayList<SmsModel> newMessagesList) {
+        if (newMessagesList != null) {
+            messageList.clear();
+            messageList.addAll(newMessagesList);
+            notifyDataSetChanged(); // Efficient notification of data change
+        }
     }
 
     static class MyMessageViewHolder extends RecyclerView.ViewHolder {

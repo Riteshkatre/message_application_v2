@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -38,6 +39,15 @@ public class MessageActivity extends AppCompatActivity {
     private String senderName;
     private String phoneNumber;
 
+    private final ContentObserver smsObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            // Reload messages when there is a change in SMS content
+            loadMessagesFromSender();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +55,7 @@ public class MessageActivity extends AppCompatActivity {
         setContentView(b.getRoot());
 
         b.imgCalender.setOnClickListener(v -> {
-
+            // Implement calendar click action
         });
 
         // Get sender info from Intent
@@ -101,63 +111,61 @@ public class MessageActivity extends AppCompatActivity {
     private void loadMessagesFromSender() {
         new Thread(() -> {
             ContentResolver cr = getContentResolver();
-
-            // Fetch phone number from contacts
             phoneNumber = getPhoneNumberFromContacts(senderAddress);
 
             if (phoneNumber != null) {
-                // Normalize the phone number
                 phoneNumber = PhoneNumberUtils.formatNumberToE164(phoneNumber, "IN"); // Adjust country code if needed
             }
 
-            // Query messages
             Cursor cursor = cr.query(
                     Uri.parse("content://sms/"),
                     null,
-                    phoneNumber != null ? "address = ?" : "address LIKE ?", // Use phoneNumber if available, else fallback to senderAddress
+                    phoneNumber != null ? "address = ?" : "address LIKE ?",
                     phoneNumber != null ? new String[]{phoneNumber} : new String[]{"%" + senderAddress + "%"},
                     "date ASC"
             );
 
             if (cursor != null) {
-                messagesList.clear();
+                ArrayList<SmsModel> newMessagesList = new ArrayList<>();
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
                     long dateMillis = cursor.getLong(cursor.getColumnIndexOrThrow("date"));
                     Date date = new Date(dateMillis);
-                    int messageType = cursor.getInt(cursor.getColumnIndexOrThrow("type")); // Fetch the type
+                    int messageType = cursor.getInt(cursor.getColumnIndexOrThrow("type"));
 
-                    String type = (messageType == 1) ? "received" : "sent"; // Determine the type
+                    String type = (messageType == 1) ? "received" : "sent";
 
-                    // Extract time from the Date object
                     SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
-                    String time = timeFormat.format(date); // Get the time as HH:mm
+                    String time = timeFormat.format(date);
 
-                    messagesList.add(new SmsModel(
-                            type.equals("received") ? senderName : "You", // Use senderName for received, "You" for sent
+                    newMessagesList.add(new SmsModel(
+                            type.equals("received") ? senderName : "You",
                             body,
                             date.toString(),
-                            time, // Pass the time
+                            time,
                             dateMillis,
                             type
                     ));
                 }
-
                 cursor.close();
+
+                // Update messagesList in the main thread and notify the adapter
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    messagesList.clear(); // Clear the old data
+                    messagesList.addAll(newMessagesList); // Add the new data
+
+                    if (messagesList.isEmpty()) {
+                        Toast.makeText(this, "No messages found", Toast.LENGTH_SHORT).show();
+                    }
+                    messageAdapter.notifyDataSetChanged(); // Notify the adapter
+                    if (!messagesList.isEmpty()) {
+                        b.rcvMassage.smoothScrollToPosition(messagesList.size() - 1); // Scroll to the bottom
+                    }
+                });
             }
-
-            new Handler(Looper.getMainLooper()).post(() -> {
-                if (messagesList.isEmpty()) {
-                }
-                messageAdapter.notifyDataSetChanged();
-
-                // Scroll to the last message
-                if (!messagesList.isEmpty()) {
-                    b.rcvMassage.smoothScrollToPosition(messagesList.size() - 1);
-                }
-            });
         }).start();
     }
+
 
     @SuppressLint("Range")
     private String getPhoneNumberFromContacts(String contactName) {
@@ -181,7 +189,6 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     private void sendMessage(String messageText) {
-
         if (phoneNumber == null || phoneNumber.isEmpty()) {
             phoneNumber = senderAddress;
         }
@@ -195,21 +202,18 @@ public class MessageActivity extends AppCompatActivity {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNumber, null, messageText, null, null);
 
-            // Create a Date object to get the current time and date
             Date currentDate = new Date();
-            String date = currentDate.toString(); // Full date and time
-            String time = date.substring(11, 19); // Extract the time part (HH:MM:SS)
+            String date = currentDate.toString();
+            String time = date.substring(11, 19);
 
-// Create the new SmsModel with both date and time
             SmsModel newMessage = new SmsModel(
-                    "You",               // Sender
-                    messageText,         // Message body
-                    date,                // Full date (Date.toString())
-                    time,                // Extracted time (HH:MM:SS)
-                    System.currentTimeMillis(), // Current time in milliseconds
-                    "sent"               // Status (sent)
+                    "You",
+                    messageText,
+                    date,
+                    time,
+                    System.currentTimeMillis(),
+                    "sent"
             );
-
 
             messagesList.add(newMessage);
             messageAdapter.notifyItemInserted(messagesList.size() - 1);
@@ -217,7 +221,7 @@ public class MessageActivity extends AppCompatActivity {
             b.etEditText.getText().clear();
             Toast.makeText(this, "Message sent successfully", Toast.LENGTH_SHORT).show();
             Intent resultIntent = new Intent();
-            resultIntent.putExtra("refresh", true); // Indicate that a message was sent
+            resultIntent.putExtra("refresh", true);
             setResult(RESULT_OK, resultIntent);
 
         } catch (Exception e) {
@@ -225,45 +229,33 @@ public class MessageActivity extends AppCompatActivity {
         }
     }
 
-    private void saveSentMessage(String recipient, String messageBody) {
-        ContentResolver contentResolver = getContentResolver();
-        ContentValues values = new ContentValues();
-        values.put("address", recipient);   // Recipient's phone number
-        values.put("body", messageBody);   // Message body
-        values.put("date", System.currentTimeMillis());
-        values.put("type", 2);             // Type 2 = Sent message
-        contentResolver.insert(Uri.parse("content://sms/sent"), values);
-    }
-
-
     private int getColorForInitial(String initial) {
         int hash = Math.abs(initial.hashCode());
-        int[] colors = {
-                Color.parseColor("#2b73ec"), // Example color
-        };
+        int[] colors = {Color.parseColor("#2b73ec")};
         return colors[hash % colors.length];
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission granted to send SMS", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Permission denied to send SMS", Toast.LENGTH_SHORT).show();
-            }
-        }
+    protected void onResume() {
+        super.onResume();
+        getContentResolver().registerContentObserver(
+                Uri.parse("content://sms"),
+                true,
+                smsObserver
+        );
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        getContentResolver().unregisterContentObserver(smsObserver);
     }
 
     @Override
     public void onBackPressed() {
-        // Prepare data to send back (if needed)
         Intent resultIntent = new Intent();
-        resultIntent.putExtra("refresh", true); // Example data to indicate refresh
+        resultIntent.putExtra("refresh", true);
         setResult(RESULT_OK, resultIntent);
-
-        // Finish the activity and return to the caller
         super.onBackPressed();
     }
 }
