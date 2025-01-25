@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".drawerActivity.Archive">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -44,11 +44,20 @@
             android:layout_height="1dp"
             android:layout_below="@+id/llOne"
             android:background="@color/translucent" />
-
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rcvArcheiv"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/view"
+            android:background="@color/white" />
+
+        <LinearLayout
+            android:id="@+id/linNoData"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_centerInParent="true"
             android:background="@color/white"
             android:gravity="center"
             android:orientation="vertical">
@@ -68,6 +77,6 @@
 
         </LinearLayout>
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </RelativeLayout>

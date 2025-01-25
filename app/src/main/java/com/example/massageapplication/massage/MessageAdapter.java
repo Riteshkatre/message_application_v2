@@ -66,7 +66,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ((MyMessageViewHolder) holder).timeTextView.setText(getFormattedDate(sms.getDateMillis()));
         } else if (holder instanceof OtherMessageViewHolder) {
             ((OtherMessageViewHolder) holder).messageTextView.setText(sms.getBody());
-            String senderText = sms.getSender() + " " + getFormattedDate(sms.getDateMillis());
+            String senderText = sms.getSender() + " " + sms.getTime();
             ((OtherMessageViewHolder) holder).timeTextView.setText(senderText);
 
             if (sms.getSender().length() > 0) {

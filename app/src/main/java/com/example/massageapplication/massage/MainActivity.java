@@ -15,19 +15,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.provider.Telephony;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -51,21 +52,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     private final ArrayList<SmsModel> smsList = new ArrayList<>();
     private final Map<String, String> contactCache = new HashMap<>();
+    private final Object smsListLock = new Object(); // Add lock object
+    Boolean isSearchActive = false;
     private ActivityMainBinding b;
     private SmsAdapter smsAdapter;
     private ActivityResultLauncher<Intent> sendSmsLauncher;
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     private SmsListener smsListener;
     private BroadcastReceiver newSmsReceiver;
-    private final Object smsListLock = new Object(); // Add lock object
-    Boolean isSearchActive = false;
-
 
     @SuppressLint({"WrongViewCast",})
     @Override
@@ -111,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         smsAdapter.setOnItemClickListener(new SmsAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, SmsModel smsModel) {
-                if (smsAdapter.getSelectedItemCount()==0) {
+                if (smsAdapter.getSelectedItemCount() == 0) {
                     Intent intent = new Intent(MainActivity.this, MessageActivity.class);
                     intent.putExtra("address", smsModel.getSender());
                     intent.putExtra("date", smsModel.getSender());
@@ -123,19 +124,44 @@ public class MainActivity extends AppCompatActivity {
             public void longClickListener(int position, SmsModel smsModel) {
                 b.mainArchiveLayout.setVisibility(View.VISIBLE);
                 b.llOne.setVisibility(View.GONE);
+                // Assuming `selectedMessagesList` is a list tracking selected items in your RecyclerView
+                b.layArchive.icPin.setOnClickListener(view -> {
+                    List<SmsModel> selectedMessagesList = smsAdapter.getSelectedItems();
+                    if (selectedMessagesList.isEmpty()) {
+                        Toast.makeText(MainActivity.this, "No messages selected for archive.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Archive the selected messages
+                    Log.e("selectedMessagesList1", selectedMessagesList.toString());
+                    archiveMessages(selectedMessagesList);
+
+
+                    // Clear selection and refresh RecyclerView
+                    smsAdapter.clearSelection();
+                    smsAdapter.notifyDataSetChanged();
+                    b.mainArchiveLayout.setVisibility(View.GONE);
+                    b.llOne.setVisibility(View.VISIBLE);
+                    // Redirect to Archive screen
+                    Intent intent = new Intent(MainActivity.this, Archive.class);
+                    startActivity(intent);
+                });
 
 
             }
 
+
+            @SuppressLint("SetTextI18n")
             @Override
-            public void onSelectionCountChanged(int count) {
-                b.layArchive.tvSelected.setText(count+" "+"Selected");
+            public void onSelectionCountChanged(int count,SmsModel smsModel) {
+                b.layArchive.tvSelected.setText(count + " " + "Selected");
 
 
             }
         });
 
         b.layArchive.icClose.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onClick(View v) {
                 smsAdapter.clearSelection();
@@ -147,11 +173,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
         b.ivSearchMsg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent (MainActivity.this, Search.class);
+                Intent intent = new Intent(MainActivity.this, Search.class);
                 startActivity(intent);
                 overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
@@ -248,12 +273,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        b.layArchive.icPin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-            }
-        });
     }
 
 
@@ -280,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == PERMISSIONS_REQUEST_CODE) {
@@ -309,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
             ContentResolver cr = getContentResolver();
 
             // Optimized cursor query with LIMIT
-            Cursor cursor = cr.query(Uri.parse("content://sms/"), null, null, null, "date DESC LIMIT 500");
+            Cursor cursor = cr.query(Uri.parse("content://sms/"), null, null, null, "date DESC");
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
@@ -462,6 +482,61 @@ public class MainActivity extends AppCompatActivity {
             smsList.add(0, newSms);
         }
         runOnUiThread(() -> smsAdapter.notifyItemInserted(0));
+    }
+    private void archiveMessages(List<SmsModel> messagesToArchive) {
+        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        Log.e("selectedMessagesList2", messagesToArchive.toString());
+
+        // Fetch existing archived messages
+        List<SmsModel> existingArchivedMessages = getArchivedMessages();
+
+        // Flag to track if any new messages were archived
+        boolean isNewArchive = false;
+
+        for (SmsModel newMessage : messagesToArchive) {
+            boolean isSenderAlreadyArchived = false;
+
+            // Check if the sender is already archived
+            for (SmsModel archivedMessage : existingArchivedMessages) {
+                if (archivedMessage.getSender().equals(newMessage.getSender())) {
+                    isSenderAlreadyArchived = true;
+                    break;
+                }
+            }
+
+            if (isSenderAlreadyArchived) {
+                // If the sender is already archived, show a message
+                Toast.makeText(MainActivity.this, "Message from " + newMessage.getSender() + " is already archived.", Toast.LENGTH_SHORT).show();
+            } else {
+                // Add to archive if not already archived
+                existingArchivedMessages.add(newMessage);
+                isNewArchive = true;
+            }
+        }
+
+        // If new messages were archived, save them to preferences
+        if (isNewArchive) {
+            Gson gson = new Gson();
+            String json = gson.toJson(existingArchivedMessages);
+            editor.putString("ArchivedMessagesList", json);
+            editor.apply();
+            Toast.makeText(MainActivity.this, "Messages archived successfully.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private List<SmsModel> getArchivedMessages() {
+        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
+        String json = preferences.getString("ArchivedMessagesList", null);
+        Log.e("selectedMessagesList3",json);
+
+        if (json != null) {
+            Gson gson = new Gson();
+            return gson.fromJson(json, new TypeToken<List<SmsModel>>() {}.getType());
+        }
+
+        return new ArrayList<>();
     }
 
 }

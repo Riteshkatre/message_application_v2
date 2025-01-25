@@ -4,12 +4,11 @@ public class SmsModel {
     private String sender;
     private String body;
     private String date;
-    private String time; // New field to store only the time
+    private String time;
     private long dateMillis;
     private String status;
 
     private boolean isBlocked;
-
     private boolean isPinned;
     private int originalPosition;
 
@@ -69,7 +68,4 @@ public class SmsModel {
     public String getStatus() {
         return status;
     }
-
-
 }
-

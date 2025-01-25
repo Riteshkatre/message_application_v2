@@ -40,7 +40,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
         void onItemClick(int position,SmsModel smsModel);
         void longClickListener(int position,SmsModel smsModel);
 
-        void onSelectionCountChanged(int count);
+        void onSelectionCountChanged(int count,SmsModel smsModel);
 
     }
 
@@ -121,7 +121,11 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             holder.checkmarkIcon.setVisibility(View.GONE);  // Hide checkmark icon
         }
 
-
+        if (selectedItems.contains(position)) {
+            holder.isPinIcon.setVisibility(View.VISIBLE);  // Show checkmark icon
+        } else {
+            holder.checkmarkIcon.setVisibility(View.GONE);  // Hide checkmark icon
+        }
     }
 
     public int getSelectedItemCount() {
@@ -246,21 +250,22 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
         notifyItemChanged(position);
 
         if (listener != null) {
-            listener.onSelectionCountChanged(getSelectedItemCount());
+            listener.onSelectionCountChanged(getSelectedItemCount(),searchList.get(position));
         }
     }
 
     public void clearSelection() {
         selectedItems.clear(); // Clear all selected items
     }
-    public ArrayList<SmsModel> getSelectedItems() {
-        ArrayList<SmsModel> selectedItems = new ArrayList<>();
+    public List<SmsModel> getSelectedItems() {
+        List<SmsModel> selectedSms = new ArrayList<>();
         for (int i = 0; i < smsList.size(); i++) {
-            if (smsList.get(i).isPinned()) { // Assuming you have an isSelected() method
-                selectedItems.add(smsList.get(i));
+            if (selectedItems.contains(i)) { // Use contains() instead of containsKey()
+                selectedSms.add(smsList.get(i));
             }
         }
-        return selectedItems;
+        return selectedSms;
     }
+
 
 }
