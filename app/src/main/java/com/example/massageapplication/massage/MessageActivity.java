@@ -159,7 +159,7 @@ public class MessageActivity extends AppCompatActivity {
                     }
                     messageAdapter.notifyDataSetChanged(); // Notify the adapter
                     if (!messagesList.isEmpty()) {
-                        b.rcvMassage.smoothScrollToPosition(messagesList.size() - 1); // Scroll to the bottom
+                        b.rcvMassage.scrollToPosition(messagesList.size() - 1); // Scroll to the bottom
                     }
                 });
             }

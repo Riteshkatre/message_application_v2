@@ -21,6 +21,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResult;
@@ -43,6 +44,8 @@ import com.example.massageapplication.databinding.ActivityMainBinding;
 import com.example.massageapplication.drawerActivity.Archive;
 import com.example.massageapplication.drawerActivity.BlockMessage;
 import com.example.massageapplication.language.LanguageSelectionActivity;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,14 +57,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     private final ArrayList<SmsModel> smsList = new ArrayList<>();
     private final Map<String, String> contactCache = new HashMap<>();
-    private final Object smsListLock = new Object(); // Add lock object
-    Boolean isSearchActive = false;
     private ActivityMainBinding b;
     private SmsAdapter smsAdapter;
     private ActivityResultLauncher<Intent> sendSmsLauncher;
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     private SmsListener smsListener;
     private BroadcastReceiver newSmsReceiver;
+    private final Object smsListLock = new Object(); // Add lock object
+    Boolean isSearchActive = false;
+
 
     @SuppressLint({"WrongViewCast",})
     @Override
@@ -107,45 +111,47 @@ public class MainActivity extends AppCompatActivity {
         smsAdapter.setOnItemClickListener(new SmsAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position, SmsModel smsModel) {
-                if (smsAdapter.getSelectedItemCount() > 0) {
-                    // Prevent redirection if in selection mode
-                    return;
+                if (smsAdapter.getSelectedItemCount()==0) {
+                    Intent intent = new Intent(MainActivity.this, MessageActivity.class);
+                    intent.putExtra("address", smsModel.getSender());
+                    intent.putExtra("date", smsModel.getSender());
+                    sendSmsLauncher.launch(intent);
                 }
-                // Redirection to MessageActivity if no items are selected
-                Intent intent = new Intent(MainActivity.this, MessageActivity.class);
-                intent.putExtra("address", smsModel.getSender());
-                intent.putExtra("date", smsModel.getSender());
-                sendSmsLauncher.launch(intent);
             }
 
             @Override
             public void longClickListener(int position, SmsModel smsModel) {
-                // Show the main archive layout when long pressed
                 b.mainArchiveLayout.setVisibility(View.VISIBLE);
-                b.layToolBar.setVisibility(View.GONE);
+                b.llOne.setVisibility(View.GONE);
+
+
+            }
+
+            @Override
+            public void onSelectionCountChanged(int count) {
+                b.layArchive.tvSelected.setText(count+" "+"Selected");
+
+
             }
         });
-
-    /*    if (smsAdapter.getSelectedItemCount() > 0) {
-            b.mainArchiveLayout.setVisibility(View.VISIBLE);
-            b.layToolBar.setVisibility(View.GONE);
-        } else {
-            b.mainArchiveLayout.setVisibility(View.GONE);
-            b.layToolBar.setVisibility(View.GONE);
-        }*/
 
         b.layArchive.icClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                smsAdapter.clearSelection();
+                smsAdapter.notifyDataSetChanged();
                 b.mainArchiveLayout.setVisibility(View.GONE);
-                b.layToolBar.setVisibility(View.VISIBLE);
+                b.llOne.setVisibility(View.VISIBLE);
             }
         });
+
+
+
 
         b.ivSearchMsg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, Search.class);
+                Intent intent = new Intent (MainActivity.this, Search.class);
                 startActivity(intent);
                 overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
@@ -239,6 +245,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
+            }
+        });
+
+        b.layArchive.icPin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
     }

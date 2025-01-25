@@ -39,6 +39,9 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     public interface OnItemClickListener {
         void onItemClick(int position,SmsModel smsModel);
         void longClickListener(int position,SmsModel smsModel);
+
+        void onSelectionCountChanged(int count);
+
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -89,16 +92,9 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             GradientDrawable background = (GradientDrawable) holder.nameLay.getBackground();
             background.setColor(color); // Set the dynamic color
             holder.itemView.setOnClickListener(v -> {
-                if (isSelectionMode) {
-                    // If in selection mode, toggle the item selection
-                    if (selectedItems.contains(position)) {
-                        selectedItems.remove(position);  // Unselect if already selected
-                    } else {
-                        selectedItems.add(position);  // Select the item
-                    }
-                    notifyDataSetChanged();  // Update the UI
+                if (selectedItems.size() > 0) {
+                    toggleSelection(position);
                 } else {
-                    // Normal behavior (only when not in selection mode)
                     if (listener != null) {
                         listener.onItemClick(position, sms);
                     }
@@ -106,10 +102,11 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             });
 
             holder.itemView.setOnLongClickListener(v -> {
-                enableSelectionMode(true);  // Enable selection mode
-                selectedItems.add(position);  // Select the item on long press
-                notifyDataSetChanged();  // Update the UI
-                return true;  // Prevent item click from triggering
+                toggleSelection(position);
+                if (listener != null) {
+                    listener.longClickListener(position, sms);
+                }
+                return true;
             });
 
         }
@@ -123,6 +120,8 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
         } else {
             holder.checkmarkIcon.setVisibility(View.GONE);  // Hide checkmark icon
         }
+
+
     }
 
     public int getSelectedItemCount() {
@@ -138,7 +137,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     static class SmsViewHolder extends RecyclerView.ViewHolder {
         TextView senderTextView, messageTextView, dateTextView, senderInitialTextView;
         LinearLayout nameLay;
-        ImageView checkmarkIcon;
+        ImageView checkmarkIcon,isPinIcon;
 
 
         public SmsViewHolder(@NonNull View itemView) {
@@ -149,6 +148,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             senderInitialTextView = itemView.findViewById(R.id.sender_initial_text_view);
             nameLay = itemView.findViewById(R.id.nameLay);
             checkmarkIcon = itemView.findViewById(R.id.checkmarkIcon);
+            isPinIcon = itemView.findViewById(R.id.checkmarkIcon);
         }
     }
 
@@ -235,6 +235,32 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     private boolean isYesterday(Calendar current, Calendar message) {
         current.add(Calendar.DAY_OF_YEAR, -1);
         return isSameDay(current, message);
+    }
+
+    public void toggleSelection(int position) {
+        if (selectedItems.contains(position)) {
+            selectedItems.remove(position);
+        } else {
+            selectedItems.add(position);
+        }
+        notifyItemChanged(position);
+
+        if (listener != null) {
+            listener.onSelectionCountChanged(getSelectedItemCount());
+        }
+    }
+
+    public void clearSelection() {
+        selectedItems.clear(); // Clear all selected items
+    }
+    public ArrayList<SmsModel> getSelectedItems() {
+        ArrayList<SmsModel> selectedItems = new ArrayList<>();
+        for (int i = 0; i < smsList.size(); i++) {
+            if (smsList.get(i).isPinned()) { // Assuming you have an isSelected() method
+                selectedItems.add(smsList.get(i));
+            }
+        }
+        return selectedItems;
     }
 
 }
