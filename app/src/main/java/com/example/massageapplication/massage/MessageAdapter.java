@@ -22,21 +22,23 @@ import java.util.Locale;
 public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final ArrayList<SmsModel> messageList;
+    private  ArrayList<SmsModel> searchList;
     private static final int VIEW_TYPE_MY_MESSAGE = 1;
     private static final int VIEW_TYPE_OTHER_MESSAGE = 2;
 
     public MessageAdapter(ArrayList<SmsModel> messageList) {
         this.messageList = messageList != null ? messageList : new ArrayList<>();
+        this.searchList = messageList != null ? messageList : new ArrayList<>();
     }
 
     @Override
     public int getItemViewType(int position) {
         // Guard against invalid position
-        if (position < 0 || position >= messageList.size()) {
+        if (position < 0 || position >= searchList.size()) {
             return VIEW_TYPE_OTHER_MESSAGE; // Default case to avoid crashes
         }
 
-        SmsModel sms = messageList.get(position);
+        SmsModel sms = searchList.get(position);
         return "You".equalsIgnoreCase(sms.getSender()) ? VIEW_TYPE_MY_MESSAGE : VIEW_TYPE_OTHER_MESSAGE;
     }
 
@@ -55,11 +57,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        if (position < 0 || position >= messageList.size()) {
+        if (position < 0 || position >= searchList.size()) {
             return; // Avoid binding with an invalid position
         }
 
-        SmsModel sms = messageList.get(position);
+        SmsModel sms = searchList.get(position);
 
         if (holder instanceof MyMessageViewHolder) {
             ((MyMessageViewHolder) holder).messageTextView.setText(sms.getBody());
@@ -84,7 +86,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemCount() {
-        return messageList.size();
+        return searchList.size();
     }
 
     public void updateMessages(ArrayList<SmsModel> newMessagesList) {
@@ -160,4 +162,35 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         current.add(Calendar.DAY_OF_YEAR, -1);
         return isSameDay(current, message);
     }
+
+    public void search(CharSequence charSequence, RecyclerView rcv, LinearLayout textView) {
+        try {
+            String charString = charSequence.toString().toLowerCase().trim();
+            if (charString.isEmpty()) {
+                searchList = messageList;
+                rcv.setVisibility(View.VISIBLE);
+            } else {
+                int flag = 0;
+                ArrayList<SmsModel> filterList = new ArrayList<>();
+                for (SmsModel row : messageList) {
+                    if (row.getBody().toLowerCase().contains(charString)) {
+                        filterList.add(row);
+                        flag = 1;
+                    }
+                }
+                if (flag == 1) {
+                    searchList = filterList;
+                    rcv.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.GONE);
+                } else {
+                    rcv.setVisibility(View.GONE);
+                    textView.setVisibility(View.VISIBLE);
+                }
+            }
+            notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

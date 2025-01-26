@@ -207,7 +207,6 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     }
 
     private String getFormattedDate(long dateMillis) {
-        Date currentDate = new Date();
         Date messageDate = new Date(dateMillis);
 
         // Format for time (HH:mm)
@@ -224,10 +223,12 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
         } else if (isYesterday(currentCalendar, messageCalendar)) {
             return "Yesterday, " + time;
         } else {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("d MMM", Locale.getDefault());
-            return dateFormat.format(messageDate);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("d MMM yyyy", Locale.getDefault()); // Include year
+            String date = dateFormat.format(messageDate); // Format the date
+            return date + ", " + time; // Combine date and time
         }
     }
+
 
     // Helper method to check if the message is from the same day
     private boolean isSameDay(Calendar current, Calendar message) {

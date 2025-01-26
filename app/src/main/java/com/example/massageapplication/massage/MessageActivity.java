@@ -17,6 +17,9 @@ import android.os.Looper;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
@@ -139,6 +142,37 @@ public class MessageActivity extends AppCompatActivity {
             // Show the PopupMenu
             popupMenu.show();
         });
+
+        b.imgSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                b.llSearch.setVisibility(View.VISIBLE);
+            }
+        });
+        b.imgMainClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                b.llSearch.setVisibility(View.GONE);
+                b.searchText.getText().clear();
+                b.llNoData.setVisibility(View.GONE);
+            }
+        });
+
+        b.searchText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                messageAdapter.search(s.toString(), b.rcvMassage, b.llNoData);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
 
     }
 

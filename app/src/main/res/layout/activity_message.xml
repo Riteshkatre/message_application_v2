@@ -1,6 +1,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:backgroundTint="@color/white"
@@ -91,16 +92,75 @@
 
     </RelativeLayout>
 
+    <LinearLayout
+        android:id="@+id/llSearch"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_55sdp"
+        android:layout_below="@id/toolRlLay"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/ll3"
+            android:layout_width="@dimen/_250sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:background="@drawable/shape"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/icSearch"
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_11sdp"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10ssp"
+                android:src="@drawable/search"
+                app:tint="@color/translucent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_30ssp"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10ssp"
+                android:text="|"
+                android:textColor="@color/translucent"
+                android:textSize="@dimen/_20ssp" />
+
+            <EditText
+                android:id="@+id/searchText"
+                android:layout_width="@dimen/_160sdp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10ssp"
+                android:background="@null"
+                android:hint="Search..."
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:textColor="@color/black"
+                android:textColorHint="@color/translucent"
+                android:textSize="@dimen/_12ssp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imgMainClose"
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:src="@drawable/close" />
+    </LinearLayout>
+
+
     <View
         android:id="@+id/view"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@+id/toolRlLay"
+        android:layout_below="@+id/llSearch"
         android:background="@color/translucent" />
 
 
     <androidx.recyclerview.widget.RecyclerView
-        android:layout_below="@+id/toolRlLay"
+        android:layout_below="@+id/view"
         android:id="@+id/rcvMassage"
         android:layout_width="match_parent"
         android:layout_above="@+id/laySendMassage"
@@ -158,5 +218,27 @@
         </LinearLayout>
 
     </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/llNoData"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_50sdp"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="@dimen/_10ssp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:text="No Data Found"
+            android:textColor="@color/black"
+            android:textSize="@dimen/_20ssp"
+            android:textStyle="bold"
+            android:visibility="visible" />
+    </LinearLayout>
+
 
 </RelativeLayout>
