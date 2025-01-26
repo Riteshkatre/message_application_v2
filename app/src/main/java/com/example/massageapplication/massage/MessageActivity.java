@@ -2,8 +2,8 @@ package com.example.massageapplication.massage;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
@@ -17,13 +17,14 @@ import android.os.Looper;
 import android.provider.ContactsContract;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsManager;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.massageapplication.R;
+import com.example.massageapplication.contact.ContactDetailsActivity;
 import com.example.massageapplication.databinding.ActivityMessageBinding;
 
 import java.text.SimpleDateFormat;
@@ -106,6 +107,39 @@ public class MessageActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please enter a message", Toast.LENGTH_SHORT).show();
             }
         });
+
+        b.imgThreeDots.setOnClickListener(v -> {
+            // Create a PopupMenu anchored to imgThreeDots
+            PopupMenu popupMenu = new PopupMenu(this, b.imgThreeDots);
+
+            // Inflate menu items or add them programmatically
+            popupMenu.getMenu().add("Schedule");
+            popupMenu.getMenu().add("More Details");
+
+            // Set a click listener for menu items
+            popupMenu.setOnMenuItemClickListener(item -> {
+                String title = item.getTitle().toString();
+
+                if (title.equals("Schedule")) {
+                    // Handle "Schedule" action
+                    Toast.makeText(this, "Schedule clicked", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (title.equals("More Details")) {
+                    // Handle "More Details" action - redirect to another activity
+                    Intent intent = new Intent(this, ContactDetailsActivity.class);
+                    intent.putExtra("name", senderAddress);
+                    intent.putExtra("number", phoneNumber);
+
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            });
+
+            // Show the PopupMenu
+            popupMenu.show();
+        });
+
     }
 
     private void loadMessagesFromSender() {

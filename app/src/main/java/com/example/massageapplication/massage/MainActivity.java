@@ -36,6 +36,7 @@ import androidx.core.view.GravityCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.massageapplication.BlockActivity;
 import com.example.massageapplication.R;
 import com.example.massageapplication.Search;
 import com.example.massageapplication.SmsDiffCallback;
@@ -417,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
         b.navDrawer.layoutBlockMsg.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, BlockMessage.class));
+            startActivity(new Intent(MainActivity.this, BlockActivity.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
     }

@@ -1,6 +1,6 @@
 package com.example.massageapplication.massage;
 
-public class SmsModel {
+public class SmsModel  {
     private String sender;
     private String body;
     private String date;

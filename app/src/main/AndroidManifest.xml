@@ -32,9 +32,14 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".Search"
+            android:name=".BlockActivity"
             android:exported="false" />
-        <!-- Add the meta-data for foreground service type -->
+        <activity
+            android:name=".contact.ContactDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Search"
+            android:exported="false" /> <!-- Add the meta-data for foreground service type -->
         <meta-data
             android:name="android.service.foregroundServiceType"
             android:value="sms" />
