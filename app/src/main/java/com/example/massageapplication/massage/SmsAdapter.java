@@ -223,9 +223,9 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
         } else if (isYesterday(currentCalendar, messageCalendar)) {
             return "Yesterday, " + time;
         } else {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("d MMM yyyy", Locale.getDefault()); // Include year
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()); // Updated date format
             String date = dateFormat.format(messageDate); // Format the date
-            return date + ", " + time; // Combine date and time
+            return date ; // Combine date and time
         }
     }
 

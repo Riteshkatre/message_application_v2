@@ -1,27 +1,32 @@
 package com.example.massageapplication;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.massageapplication.drawerActivity.Archive;
 import com.example.massageapplication.massage.MessageActivity;
 import com.example.massageapplication.massage.SmsModel;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
 
 public class BlockActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
+    private ImageView ivUnBlock, imgBack;
+    LinearLayout linNoData;
     private BlockedAdapter adapter;
     private ArrayList<SmsModel> blockedMessagesList;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +34,22 @@ public class BlockActivity extends AppCompatActivity {
         setContentView(R.layout.activity_block);
 
         recyclerView = findViewById(R.id.blocked_recycler_view);
+        ivUnBlock = findViewById(R.id.ivUnBlock);
+        imgBack = findViewById(R.id.imgBack);
+        linNoData = findViewById(R.id.linNoData);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Load and display blocked users
+        // ब्लॉक किए गए उपयोगकर्ताओं को लोड करें और प्रदर्शित करें
         blockedMessagesList = loadBlockedMessages();
         adapter = new BlockedAdapter(this, blockedMessagesList);
         recyclerView.setAdapter(adapter);
+        if (blockedMessagesList.isEmpty()) {
+            recyclerView.setVisibility(View.GONE); // RecyclerView को छिपाएं
+            linNoData.setVisibility(View.VISIBLE); // "No Data" TextView को दिखाएं
+        } else {
+            recyclerView.setVisibility(View.VISIBLE); // RecyclerView को दिखाएं
+            linNoData.setVisibility(View.GONE); // "No Data" TextView को छिपाएं
+        }
 
         adapter.setOnItemClickListener(new BlockedAdapter.OnItemClickListener() {
             @Override
@@ -43,53 +58,76 @@ public class BlockActivity extends AppCompatActivity {
                 intent.putExtra("address", smsModel.getSender());
                 intent.putExtra("date", smsModel.getSender());
                 startActivity(intent);
-                finish();
+            }
+
+            @Override
+            public void longClickListener(int position, SmsModel smsModel) {
+                ivUnBlock.setVisibility(View.VISIBLE);
+                ivUnBlock.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // अनब्लॉक करने से पहले पुष्टि डायलॉग दिखाएं
+                        showConfirmationDialog(smsModel);
+                    }
+                });
             }
         });
 
-
+        imgBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
     }
 
     private ArrayList<SmsModel> loadBlockedMessages() {
-        SharedPreferences preferences = getSharedPreferences("BlockedMessages", MODE_PRIVATE);
-        String blockedMessagesJson = preferences.getString("blockedMessages", "[]");
-
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        String blockedMessagesJson = preferences.getString("blockedContacts", "[]");
         ArrayList<SmsModel> allMessages = new Gson().fromJson(blockedMessagesJson, new TypeToken<ArrayList<SmsModel>>() {}.getType());
 
-        if (allMessages != null) {
-            return (ArrayList<SmsModel>) allMessages.stream()
-                    .filter(SmsModel::isBlocked)
-                    .collect(Collectors.toList());
-        }
-        return new ArrayList<>();
-    }
-
-    private void unblockUser(SmsModel smsModel) {
-        smsModel.setBlocked(false);
-
-        // Update SharedPreferences
-        SharedPreferences preferences = getSharedPreferences("BlockedMessages", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-
-        // Load existing messages
-        String blockedMessagesJson = preferences.getString("blockedMessages", "[]");
-        ArrayList<SmsModel> allMessages = new Gson().fromJson(blockedMessagesJson, new TypeToken<ArrayList<SmsModel>>() {}.getType());
-
-        // Update the specific blocked message
+        ArrayList<SmsModel> blockedMessages = new ArrayList<>();
         for (SmsModel message : allMessages) {
-            if (message.getSender().equals(smsModel.getSender())) {
-                message.setBlocked(false);
-                break;
+            if (message.isBlocked()) {
+                blockedMessages.add(message);
             }
         }
 
-        // Save the updated list
-        String updatedJson = new Gson().toJson(allMessages);
-        editor.putString("blockedMessages", updatedJson);
+        return blockedMessages;
+    }
+
+    private void unblockUser(SmsModel smsModel) {
+        // ब्लॉक किए गए उपयोगकर्ता को लिस्ट से हटा दें
+        blockedMessagesList.remove(smsModel);
+
+        // SharedPreferences को अपडेट करें
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        // अपडेट की गई लिस्ट को JSON में बदलें
+        String updatedJson = new Gson().toJson(blockedMessagesList);
+        editor.putString("blockedContacts", updatedJson);
         editor.apply();
 
-        // Refresh the adapter
-        blockedMessagesList = loadBlockedMessages();
+        // RecyclerView को अपडेट करें
         adapter.updateList(blockedMessagesList);
+
+        // यूजर को सूचित करें
+        Toast.makeText(BlockActivity.this, smsModel.getSender() + " has been unblocked.", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showConfirmationDialog(SmsModel smsModel) {
+        // अनब्लॉक करने के लिए पुष्टि डायलॉग
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to unblock this user?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        unblockUser(smsModel);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .create()
+                .show();
     }
 }

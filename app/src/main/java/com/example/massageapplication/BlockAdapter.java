@@ -1,8 +1,6 @@
 package com.example.massageapplication;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,32 +11,36 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.massageapplication.drawerActivity.ArchiveAdapter;
 import com.example.massageapplication.massage.SmsModel;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 class BlockedAdapter extends RecyclerView.Adapter<BlockedAdapter.ViewHolder> {
     private ArrayList<SmsModel> blockedMessages;
-    Context context;
+    private Context context;
     private OnItemClickListener listener;
+    private Set<Integer> selectedItems;
 
     public interface OnItemClickListener {
-        void onItemClick(int position,SmsModel smsModel);
-
-
+        void onItemClick(int position, SmsModel smsModel);
+        void longClickListener(int position, SmsModel smsModel);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
-    public BlockedAdapter(Context context,ArrayList<SmsModel> blockedMessages) {
+
+    public BlockedAdapter(Context context, ArrayList<SmsModel> blockedMessages) {
         this.blockedMessages = blockedMessages;
-        this.context=context;
+        this.context = context;
+        this.selectedItems = new HashSet<>();
     }
 
-    public void updateList(ArrayList<SmsModel> updatedList) {
-        this.blockedMessages = updatedList;
+    public void updateList(ArrayList<SmsModel> newList) {
+        this.blockedMessages = newList;
         notifyDataSetChanged();
     }
 
@@ -55,35 +57,30 @@ class BlockedAdapter extends RecyclerView.Adapter<BlockedAdapter.ViewHolder> {
         holder.senderTextView.setText(message.getSender());
         holder.messageTextView.setText(message.getBody());
         holder.dateTextView.setText(message.getDate());
-/*
-        holder.threeDot.setOnClickListener(v -> {
-            AlertDialog dialog = new AlertDialog.Builder(context)
-                    .setTitle("Unblock Sender")
-                    .setMessage("Are you sure you want to unblock this sender?")
-                    .setPositiveButton("Yes", (dialogInterface, which) -> {
-                        // Remove sender from blocked list
-                        unblockSender(message.getSender());
-                        blockedMessages.remove(position);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, blockedMessages.size());
-                    })
-                    .setNegativeButton("No", (dialogInterface, which) -> {
-                        // Dismiss the dialog explicitly
-                        dialogInterface.dismiss();
-                    })
-                    .create();
 
-            dialog.show();
-        });
-*/
         holder.itemView.setOnClickListener(v -> {
-
-            if (listener != null) {
-                listener.onItemClick(position, blockedMessages.get(position));
+            if (selectedItems.size() > 0) {
+                toggleSelection(position);
+            } else {
+                if (listener != null) {
+                    listener.onItemClick(position, message);
+                }
             }
-
         });
 
+        holder.itemView.setOnLongClickListener(v -> {
+            toggleSelection(position);
+            if (listener != null) {
+                listener.longClickListener(position, message);
+            }
+            return true;
+        });
+
+        if (selectedItems.contains(position)) {
+            holder.checkmarkIcon.setVisibility(View.VISIBLE);
+        } else {
+            holder.checkmarkIcon.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -94,7 +91,8 @@ class BlockedAdapter extends RecyclerView.Adapter<BlockedAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView senderTextView, messageTextView, dateTextView, senderInitialTextView;
         LinearLayout nameLay;
-        ImageView checkmarkIcon,isPinIcon;
+        ImageView checkmarkIcon;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             senderTextView = itemView.findViewById(R.id.sender_text_view);
@@ -103,15 +101,16 @@ class BlockedAdapter extends RecyclerView.Adapter<BlockedAdapter.ViewHolder> {
             senderInitialTextView = itemView.findViewById(R.id.sender_initial_text_view);
             nameLay = itemView.findViewById(R.id.nameLay);
             checkmarkIcon = itemView.findViewById(R.id.checkmarkIcon);
-            isPinIcon = itemView.findViewById(R.id.checkmarkIcon);
         }
     }
 
-    private void unblockSender(String sender) {
-        SharedPreferences preferences = context.getSharedPreferences("BlockedSenders", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.remove(sender); // Remove sender from blocked list
-        editor.apply();
-
+    public void toggleSelection(int position) {
+        if (selectedItems.contains(position)) {
+            selectedItems.remove(position);
+        } else {
+            selectedItems.add(position);
+        }
+        notifyItemChanged(position);
     }
+
 }

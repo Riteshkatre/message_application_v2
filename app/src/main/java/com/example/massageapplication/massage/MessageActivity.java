@@ -2,9 +2,9 @@ package com.example.massageapplication.massage;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -29,6 +29,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.massageapplication.R;
 import com.example.massageapplication.contact.ContactDetailsActivity;
 import com.example.massageapplication.databinding.ActivityMessageBinding;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -36,9 +38,9 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MessageActivity extends AppCompatActivity {
+    private final ArrayList<SmsModel> messagesList = new ArrayList<>();
     ActivityMessageBinding b;
     private MessageAdapter messageAdapter;
-    private final ArrayList<SmsModel> messagesList = new ArrayList<>();
     private String senderAddress;
     private String senderName;
     private String phoneNumber;
@@ -104,7 +106,11 @@ public class MessageActivity extends AppCompatActivity {
                 if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                     requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 1);
                 } else {
-                    sendMessage(messageText);
+                    if (isBlocked(senderAddress)) {
+                        Toast.makeText(this, "Cannot send message to blocked contact", Toast.LENGTH_SHORT).show();
+                    } else {
+                        sendMessage(messageText);
+                    }
                 }
             } else {
                 Toast.makeText(this, "Please enter a message", Toast.LENGTH_SHORT).show();
@@ -143,19 +149,14 @@ public class MessageActivity extends AppCompatActivity {
             popupMenu.show();
         });
 
-        b.imgSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                b.llSearch.setVisibility(View.VISIBLE);
-            }
+        b.imgSearch.setOnClickListener(v -> {
+            b.llSearch.setVisibility(View.VISIBLE);
         });
-        b.imgMainClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                b.llSearch.setVisibility(View.GONE);
-                b.searchText.getText().clear();
-                b.llNoData.setVisibility(View.GONE);
-            }
+
+        b.imgMainClose.setOnClickListener(v -> {
+            b.llSearch.setVisibility(View.GONE);
+            b.searchText.getText().clear();
+            b.llNoData.setVisibility(View.GONE);
         });
 
         b.searchText.addTextChangedListener(new TextWatcher() {
@@ -172,8 +173,6 @@ public class MessageActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
-
-
     }
 
     private void loadMessagesFromSender() {
@@ -185,13 +184,7 @@ public class MessageActivity extends AppCompatActivity {
                 phoneNumber = PhoneNumberUtils.formatNumberToE164(phoneNumber, "IN"); // Adjust country code if needed
             }
 
-            Cursor cursor = cr.query(
-                    Uri.parse("content://sms/"),
-                    null,
-                    phoneNumber != null ? "address = ?" : "address LIKE ?",
-                    phoneNumber != null ? new String[]{phoneNumber} : new String[]{"%" + senderAddress + "%"},
-                    "date ASC"
-            );
+            Cursor cursor = cr.query(Uri.parse("content://sms/"), null, phoneNumber != null ? "address = ?" : "address LIKE ?", phoneNumber != null ? new String[]{phoneNumber} : new String[]{"%" + senderAddress + "%"}, "date ASC");
 
             if (cursor != null) {
                 ArrayList<SmsModel> newMessagesList = new ArrayList<>();
@@ -203,17 +196,14 @@ public class MessageActivity extends AppCompatActivity {
 
                     String type = (messageType == 1) ? "received" : "sent";
 
+                    if (isBlocked(senderAddress)) {
+                        continue;  // Skip blocked sender's messages
+                    }
+
                     SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
                     String time = timeFormat.format(date);
 
-                    newMessagesList.add(new SmsModel(
-                            type.equals("received") ? senderName : "You",
-                            body,
-                            date.toString(),
-                            time,
-                            dateMillis,
-                            type
-                    ));
+                    newMessagesList.add(new SmsModel(type.equals("received") ? senderName : "You", body, date.toString(), time, dateMillis, type));
                 }
                 cursor.close();
 
@@ -234,26 +224,18 @@ public class MessageActivity extends AppCompatActivity {
         }).start();
     }
 
+    private boolean isBlocked(String phoneNumber) {
+        // Check if the phone number is in the blocked contacts list
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
 
-    @SuppressLint("Range")
-    private String getPhoneNumberFromContacts(String contactName) {
-        String phoneNumber = null;
-        ContentResolver resolver = getContentResolver();
-        Cursor cursor = resolver.query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
-                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?",
-                new String[]{"%" + contactName + "%"},
-                null
-        );
-
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        for (SmsModel contact : blockedContacts) {
+            if (contact.getSender().equals(phoneNumber)) {
+                return true;  // Contact is blocked
             }
-            cursor.close();
         }
-        return phoneNumber;
+        return false;  // Contact is not blocked
     }
 
     private void sendMessage(String messageText) {
@@ -266,6 +248,11 @@ public class MessageActivity extends AppCompatActivity {
             return;
         }
 
+        if (isBlocked(phoneNumber)) {
+            Toast.makeText(this, "Cannot send message to blocked contact", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNumber, null, messageText, null, null);
@@ -274,14 +261,7 @@ public class MessageActivity extends AppCompatActivity {
             String date = currentDate.toString();
             String time = date.substring(11, 19);
 
-            SmsModel newMessage = new SmsModel(
-                    "You",
-                    messageText,
-                    date,
-                    time,
-                    System.currentTimeMillis(),
-                    "sent"
-            );
+            SmsModel newMessage = new SmsModel("You", messageText, date, time, System.currentTimeMillis(), "sent");
 
             messagesList.add(newMessage);
             messageAdapter.notifyItemInserted(messagesList.size() - 1);
@@ -291,39 +271,29 @@ public class MessageActivity extends AppCompatActivity {
             Intent resultIntent = new Intent();
             resultIntent.putExtra("refresh", true);
             setResult(RESULT_OK, resultIntent);
-
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to send message: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to send message", Toast.LENGTH_SHORT).show();
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private String getPhoneNumberFromContacts(String senderAddress) {
+        // Query the contacts database to retrieve phone number for the sender
+        String[] projection = {ContactsContract.CommonDataKinds.Phone.NUMBER, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME};
+        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                projection, ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE ?", new String[]{"%" + senderAddress + "%"}, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            String number = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+            cursor.close();
+            return number;
+        }
+        return null;
+    }
+
     private int getColorForInitial(String initial) {
-        int hash = Math.abs(initial.hashCode());
-        int[] colors = {Color.parseColor("#2b73ec")};
-        return colors[hash % colors.length];
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        getContentResolver().registerContentObserver(
-                Uri.parse("content://sms"),
-                true,
-                smsObserver
-        );
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        getContentResolver().unregisterContentObserver(smsObserver);
-    }
-
-    @Override
-    public void onBackPressed() {
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra("refresh", true);
-        setResult(RESULT_OK, resultIntent);
-        super.onBackPressed();
+        // Generate a random color or use any logic for color selection
+        return Color.parseColor("#FF6347");  // Example color (Tomato)
     }
 }
