@@ -17,22 +17,29 @@ import com.example.massageapplication.massage.SmsAdapter;
 import com.example.massageapplication.massage.SmsModel;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ArchiveAdapter extends RecyclerView.Adapter<ArchiveAdapter.SmsViewHolder> {
     private ArrayList<SmsModel> smsList;
     private OnItemClickListener listener;
-
+    private Set<Integer> selectedItems;
     public interface OnItemClickListener {
         void onItemClick(int position,SmsModel smsModel);
-
+        void longClickListener(int position, SmsModel smsModel);
 
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.listener = listener;
     }
+    public void updateList(ArrayList<SmsModel> newList) {
+        this.smsList = newList;
+        notifyDataSetChanged();
+    }
     public ArchiveAdapter(ArrayList<SmsModel> smsList) {
         this.smsList = smsList;
+        this.selectedItems = new HashSet<>();
     }
     @NonNull
     @Override
@@ -70,12 +77,28 @@ public class ArchiveAdapter extends RecyclerView.Adapter<ArchiveAdapter.SmsViewH
             background.setColor(color);
         }
         holder.itemView.setOnClickListener(v -> {
-
+            if (selectedItems.size() > 0) {
+                toggleSelection(position);
+            } else {
                 if (listener != null) {
                     listener.onItemClick(position, sms);
                 }
-
+            }
         });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            toggleSelection(position);
+            if (listener != null) {
+                listener.longClickListener(position, sms);
+            }
+            return true;
+        });
+
+        if (selectedItems.contains(position)) {
+            holder.checkmarkIcon.setVisibility(View.VISIBLE);
+        } else {
+            holder.checkmarkIcon.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -117,6 +140,22 @@ public class ArchiveAdapter extends RecyclerView.Adapter<ArchiveAdapter.SmsViewH
                 Color.parseColor("#FFE0B2"), // Light orange
         };
         return colors[hash % colors.length];
+    }
+
+    public void toggleSelection(int position) {
+        if (selectedItems.contains(position)) {
+            selectedItems.remove(position);
+        } else {
+            selectedItems.add(position);
+        }
+        notifyItemChanged(position);
+    }
+    public void removeItem(SmsModel smsModel) {
+        int position = smsList.indexOf(smsModel); // Assuming archivedMessages is the list in your adapter
+        if (position != -1) {
+            smsList.remove(position);
+            notifyItemRemoved(position);
+        }
     }
 
 }

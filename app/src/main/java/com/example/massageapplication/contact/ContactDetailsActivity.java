@@ -4,10 +4,13 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.massageapplication.BlockActivity;
@@ -38,7 +41,6 @@ public class ContactDetailsActivity extends AppCompatActivity {
             b.shortName.setText(initial);
         }
 
-        // ब्लॉक और अनब्लॉक का चेक करने के लिए
         checkBlockStatus(name);
 
         b.ivArchiveBack.setOnClickListener(new View.OnClickListener() {
@@ -47,6 +49,26 @@ public class ContactDetailsActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        b.callImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Get the phone number
+                String phoneNumber = b.number.getText().toString();
+
+                // Check for CALL_PHONE permission
+                if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                    // Create call intent
+                    Intent callIntent = new Intent(Intent.ACTION_CALL);
+                    callIntent.setData(Uri.parse("tel:" + phoneNumber));
+                    startActivity(callIntent);
+                } else {
+                    // Request the CALL_PHONE permission
+                    requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
+                }
+            }
+        });
+
 
         b.layBlock.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,6 +117,21 @@ public class ContactDetailsActivity extends AppCompatActivity {
         // अगर संपर्क ब्लॉक नहीं है, तो UI में ब्लॉक दिखाएं
         b.tvBlock.setText("Block");
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, you can now make the call
+                Toast.makeText(this, "Permission granted. Try again to make the call.", Toast.LENGTH_SHORT).show();
+            } else {
+                // Permission denied
+                Toast.makeText(this, "Permission denied. Cannot make the call.", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
 
     private void blockContact(String phoneNumber) {
         // ब्लॉक किए गए संपर्क के लिए SmsModel बनाएँ

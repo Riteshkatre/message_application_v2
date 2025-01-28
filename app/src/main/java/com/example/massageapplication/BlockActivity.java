@@ -124,6 +124,7 @@ public class BlockActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         unblockUser(smsModel);
+                        ivUnBlock.setVisibility(View.GONE);
                     }
                 })
                 .setNegativeButton("No", null)

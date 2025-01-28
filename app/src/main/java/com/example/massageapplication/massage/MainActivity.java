@@ -282,9 +282,7 @@ public class MainActivity extends AppCompatActivity {
                     String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
                     long dateMillis = cursor.getLong(cursor.getColumnIndexOrThrow("date"));
                     Date date = new Date(dateMillis);
-                    if (isBlocked(address)) {
-                        continue;  // Skip the blocked messages
-                    }
+
                     String dateStr = android.text.format.DateFormat.format("yyyy-MM-dd", date).toString();
                     String timeStr = android.text.format.DateFormat.format("HH:mm", date).toString();
                     String name = getContactName(address);
