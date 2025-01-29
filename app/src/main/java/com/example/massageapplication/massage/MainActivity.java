@@ -360,9 +360,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (isDefaultSmsApp()) {
-            loadMessages();
-        }
+        loadMessages();
+//        if (isDefaultSmsApp()) {
+//
+//        }
     }
 
     @Override
@@ -375,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void navDrawerClickS() {
         b.navDrawer.layoutLanguage.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, LanguageSelectionActivity.class));
+            sendSmsLauncher.launch(new Intent(MainActivity.this, LanguageSelectionActivity.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
         b.navDrawer.layoutArchive.setOnClickListener(v -> {
@@ -388,33 +389,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void unarchiveMessage(SmsModel smsModel) {
-        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        List<SmsModel> archivedMessages = getArchivedMessages();
-
-        // Remove the unarchived message
-        boolean isRemoved = archivedMessages.removeIf(archivedMessage -> archivedMessage.getSender().equals(smsModel.getSender()));
-
-        if (isRemoved) {
-            // Save the updated archived messages list
-            Gson gson = new Gson();
-            String json = gson.toJson(archivedMessages);
-            editor.putString("ArchivedMessagesList", json);
-            editor.apply();
-
-            // Refresh the message list
-            synchronized (smsListLock) {
-                smsList.add(0, smsModel); // Add unarchived message back to the main list
-            }
-            runOnUiThread(() -> {
-                smsAdapter.notifyDataSetChanged(); // Refresh RecyclerView
-                Toast.makeText(MainActivity.this, "Message unarchived successfully.", Toast.LENGTH_SHORT).show();
-            });
-        } else {
-            Toast.makeText(MainActivity.this, "Message not found in archive.", Toast.LENGTH_SHORT).show();
-        }
-    }
 
     private void requestDefaultSmsApp() {
         Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
@@ -493,6 +467,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 existingArchivedMessages.add(newMessage);
                 isNewArchive = true;
+                loadMessages();
             }
         }
         if (isNewArchive) {

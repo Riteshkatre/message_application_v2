@@ -1,6 +1,5 @@
 package com.example.massageapplication.drawerActivity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -20,6 +19,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.massageapplication.MmsReciever;
 import com.example.massageapplication.R;
 import com.example.massageapplication.massage.MessageActivity;
 import com.example.massageapplication.massage.SmsModel;
@@ -109,21 +109,17 @@ public class Archive extends AppCompatActivity {
         Log.e("selectedMessagesList", json != null ? json : "No archived messages");
 
         if (json != null) {
-            return new Gson().fromJson(json, new TypeToken<List<SmsModel>>() {}.getType());
+            return new Gson().fromJson(json, new TypeToken<List<SmsModel>>() {
+            }.getType());
         }
         return new ArrayList<>();
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
-        new AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to unarchive this user?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    unarchiveUser(smsModel);
-                    ivUnArchive.setVisibility(View.GONE);
-                })
-                .setNegativeButton("No", null)
-                .create()
-                .show();
+        new AlertDialog.Builder(this).setMessage("Are you sure you want to unarchive this user?").setPositiveButton("Yes", (dialog, which) -> {
+            unarchiveUser(smsModel);
+            ivUnArchive.setVisibility(View.GONE);
+        }).setNegativeButton("No", null).create().show();
     }
 
     private void unarchiveUser(SmsModel smsModel) {
@@ -142,7 +138,8 @@ public class Archive extends AppCompatActivity {
         ArrayList<SmsModel> mainMessages = new ArrayList<>();
 
         if (mainJson != null) {
-            mainMessages = new Gson().fromJson(mainJson, new TypeToken<List<SmsModel>>() {}.getType());
+            mainMessages = new Gson().fromJson(mainJson, new TypeToken<List<SmsModel>>() {
+            }.getType());
         }
         mainMessages.add(smsModel);
 
@@ -152,9 +149,11 @@ public class Archive extends AppCompatActivity {
         mainEditor.apply();
 
         pinnedMessagesAdapter.updateList(pinnedMessages);
-
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("refresh", true);
+        setResult(RESULT_OK,resultIntent);
         Toast.makeText(Archive.this, smsModel.getSender() + " has been unarchived.", Toast.LENGTH_SHORT).show();
-
         finish();
     }
+
 }

@@ -12,6 +12,7 @@ import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -32,25 +33,10 @@ public class ContactsActivity extends AppCompatActivity {
     private ImageView ivKeyboard, ivContactBack;
     private EditText etContactSearch;
     private RecyclerView recyclerView;
+    LinearLayout linNoData;
     private ContactsAdapter adapter;
     private ArrayList<Contact> contacts;
     private boolean isKeyboardModeText = true;
-
-    private final TextWatcher numberOnlyWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            if (!s.toString().matches("\\d*")) {
-                etContactSearch.setText(s.toString().replaceAll("[^\\d]", ""));
-                etContactSearch.setSelection(etContactSearch.getText().length());
-            }
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {}
-    };
 
     private final ActivityResultLauncher<Intent> messageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -82,6 +68,7 @@ public class ContactsActivity extends AppCompatActivity {
         ivContactBack = findViewById(R.id.ivContactBack);
         etContactSearch = findViewById(R.id.etContactSearch);
         recyclerView = findViewById(R.id.contacts_recycler_view);
+        linNoData = findViewById(R.id.linNoData);
     }
 
     private void setupRecyclerView() {
@@ -121,7 +108,7 @@ public class ContactsActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterContacts(s.toString());
+                adapter.search(s.toString(),recyclerView,linNoData);
             }
 
             @Override
@@ -148,7 +135,6 @@ public class ContactsActivity extends AppCompatActivity {
         etContactSearch.setHint("Enter numbers");
         etContactSearch.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
         etContactSearch.setText("");
-        etContactSearch.addTextChangedListener(numberOnlyWatcher);
     }
 
     private void switchToTextMode() {
@@ -157,7 +143,6 @@ public class ContactsActivity extends AppCompatActivity {
         etContactSearch.setHint("Search contacts");
         etContactSearch.setFilters(new InputFilter[]{});
         etContactSearch.setText("");
-        etContactSearch.removeTextChangedListener(numberOnlyWatcher);
     }
 
     private void loadContacts() {
@@ -200,21 +185,4 @@ public class ContactsActivity extends AppCompatActivity {
         });
     }
 
-    private void filterContacts(String query) {
-        ArrayList<Contact> filteredContacts = new ArrayList<>();
-        HashSet<String> phoneSet = new HashSet<>();
-
-        for (Contact contact : contacts) {
-            String normalizedPhone = contact.getPhone().replaceAll("\\s", "");
-
-            if ((contact.getName().toLowerCase().contains(query.toLowerCase()) ||
-                    normalizedPhone.contains(query)) &&
-                    !phoneSet.contains(normalizedPhone)) {
-                filteredContacts.add(contact);
-                phoneSet.add(normalizedPhone);
-            }
-        }
-
-        adapter.filterContacts(query);
-    }
 }

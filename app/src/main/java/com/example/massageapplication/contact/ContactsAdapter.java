@@ -13,14 +13,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.massageapplication.R;
+import com.example.massageapplication.massage.SmsModel;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
     private final Context context;
-    private final List<Contact> contacts; // Original list of all contacts
-    private final List<Contact> displayedContacts; // List used for filtering
+    private final List<Contact> contacts;
+    private  List<Contact> searchContacts;
     private OnItemClickListener listener;
 
     // Listener interface
@@ -36,7 +39,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     public ContactsAdapter(Context context, List<Contact> contacts) {
         this.context = context;
         this.contacts = contacts;
-        this.displayedContacts = new ArrayList<>(contacts); // Initially, show all contacts
+        this.searchContacts = contacts; // Initially, show all contacts
     }
 
     @NonNull
@@ -48,7 +51,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
 
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
-        Contact contact = displayedContacts.get(position);
+        Contact contact = searchContacts.get(position);
 
         holder.nameTextView.setText(contact.getName());
         holder.number.setText(contact.getPhone());
@@ -92,7 +95,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
 
     @Override
     public int getItemCount() {
-        return displayedContacts.size();
+        return searchContacts.size();
     }
 
     // ViewHolder class for RecyclerView
@@ -110,24 +113,41 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     }
 
     // Method to filter contacts based on a query
-    public void filterContacts(String query) {
-        displayedContacts.clear();
 
-        if (query.isEmpty()) {
-            displayedContacts.addAll(contacts); // Show all contacts if query is empty
-        } else {
-            ArrayList<String> addedNumbers = new ArrayList<>();
-            for (Contact contact : contacts) {
-                String normalizedPhone = contact.getPhone().replaceAll("\\s", "");
-                if ((contact.getName().toLowerCase().contains(query.toLowerCase()) ||
-                        normalizedPhone.contains(query)) &&
-                        !addedNumbers.contains(normalizedPhone)) {
-                    displayedContacts.add(contact);
-                    addedNumbers.add(normalizedPhone); // Track added numbers to avoid duplicates
+    public void search(CharSequence charSequence, RecyclerView rcv, LinearLayout textView) {
+        try {
+            String charString = charSequence.toString().toLowerCase().trim();
+            if (charString.isEmpty()) {
+                searchContacts = contacts;
+                rcv.setVisibility(View.VISIBLE);
+            } else {
+                int flag = 0;
+                ArrayList<Contact> filterList = new ArrayList<>();
+                Set<String> uniqueSenders = new HashSet<>(); // Track unique senders
+
+                for (Contact row : contacts) {
+                    if (row.getName().toLowerCase().contains(charString)) {
+                        if (!uniqueSenders.contains(row.getName())) { // Check if sender already exists
+                            uniqueSenders.add(row.getName()); // Add sender to Set
+                            filterList.add(row);
+                            flag = 1;
+                        }
+                    }
+                }
+
+                if (flag == 1) {
+                    searchContacts = filterList;
+                    rcv.setVisibility(View.VISIBLE);
+                    textView.setVisibility(View.GONE);
+                } else {
+                    rcv.setVisibility(View.GONE);
+                    textView.setVisibility(View.VISIBLE);
                 }
             }
+            notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        notifyDataSetChanged();
     }
+
 }

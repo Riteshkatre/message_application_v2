@@ -185,12 +185,18 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
             } else {
                 int flag = 0;
                 ArrayList<SmsModel> filterList = new ArrayList<>();
+                Set<String> uniqueSenders = new HashSet<>(); // Track unique senders
+
                 for (SmsModel row : smsList) {
                     if (row.getSender().toLowerCase().contains(charString)) {
-                        filterList.add(row);
-                        flag = 1;
+                        if (!uniqueSenders.contains(row.getSender())) { // Check if sender already exists
+                            uniqueSenders.add(row.getSender()); // Add sender to Set
+                            filterList.add(row);
+                            flag = 1;
+                        }
                     }
                 }
+
                 if (flag == 1) {
                     searchList = filterList;
                     rcv.setVisibility(View.VISIBLE);
