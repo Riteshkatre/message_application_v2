@@ -67,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     private SmsListener smsListener;
     private BroadcastReceiver newSmsReceiver;
-     boolean isFirstTime;
+
+
 
     @SuppressLint({"WrongViewCast",})
     @Override
@@ -90,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         smsAdapter = new SmsAdapter(smsList);
         b.messagesRecyclerView.setAdapter(smsAdapter);
         SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-         isFirstTime = preferences.getBoolean("isFirstTime", true);
+        boolean isFirstTime = preferences.getBoolean("isFirstTime", true);
         prepareIntentLauncher();
         if (isFirstTime) {
 //            requestDefaultSmsRole();
@@ -130,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                     b.mainArchiveLayout.setVisibility(View.GONE);
                     b.llOne.setVisibility(View.VISIBLE);
                     Intent intent = new Intent(MainActivity.this, Archive.class);
-                    startActivity(intent);
+                    sendSmsLauncher.launch(intent);
                 });
             }
 
@@ -286,8 +287,11 @@ public class MainActivity extends AppCompatActivity {
             ContentResolver cr = getContentResolver();
             Cursor cursor = cr.query(Uri.parse("content://sms/"), null, null, null, "date DESC");
 
+            // ब्लॉक किए गए नंबर की लिस्ट को पढ़ें
+            ArrayList<SmsModel> blockedContacts = getBlockedContacts();
+
             if (cursor != null) {
-                List<SmsModel> archivedMessages = getArchivedMessages(); // Retrieve archived messages
+                List<SmsModel> archivedMessages = getArchivedMessages(); // Archived मैसेज को पढ़ें
 
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
@@ -301,7 +305,16 @@ public class MainActivity extends AppCompatActivity {
 
                     SmsModel newMessage = new SmsModel(name, body, dateStr, timeStr, dateMillis, "received");
 
-                    // **Filter out archived messages**
+                    // चेक करें कि क्या यह नंबर ब्लॉक किया गया है
+                    boolean isBlocked = false;
+                    for (SmsModel blockedContact : blockedContacts) {
+                        if (blockedContact.getSender().equals(address)) {
+                            isBlocked = true;
+                            break;
+                        }
+                    }
+
+                    // Archived और ब्लॉक किए गए मैसेज को फ़िल्टर करें
                     boolean isArchived = false;
                     for (SmsModel archivedMessage : archivedMessages) {
                         if (archivedMessage.getSender().equals(newMessage.getSender())) {
@@ -309,7 +322,9 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         }
                     }
-                    if (!isArchived && !uniqueMessages.containsKey(address)) {
+
+                    // अगर मैसेज न तो Archived है और न ही ब्लॉक किया गया है, तो इसे लिस्ट में जोड़ें
+                    if (!isArchived && !isBlocked && !uniqueMessages.containsKey(address)) {
                         uniqueMessages.put(address, newMessage);
                     }
                 }
@@ -334,12 +349,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    private boolean isBlocked(String phoneNumber) {
-        SharedPreferences sharedPreferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        Set<String> blockedContacts = sharedPreferences.getStringSet("BlockedList", new HashSet<>());
-        return blockedContacts.contains(phoneNumber);
-    }
-
     private String getContactName(String phoneNumber) {
         if (contactCache.containsKey(phoneNumber)) {
             return contactCache.get(phoneNumber);
@@ -361,12 +370,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!isFirstTime){
+        if (isDefaultSmsApp()) {
             loadMessages();
         }
-//        if (isDefaultSmsApp()) {
-//
-//        }
     }
 
     @Override
@@ -379,15 +385,15 @@ public class MainActivity extends AppCompatActivity {
 
     public void navDrawerClickS() {
         b.navDrawer.layoutLanguage.setOnClickListener(v -> {
-            sendSmsLauncher.launch(new Intent(MainActivity.this, LanguageSelectionActivity.class));
+            startActivity(new Intent(MainActivity.this, LanguageSelectionActivity.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
         b.navDrawer.layoutArchive.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, Archive.class));
+            sendSmsLauncher.launch(new Intent(MainActivity.this, Archive.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
         b.navDrawer.layoutBlockMsg.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, BlockActivity.class));
+            sendSmsLauncher.launch(new Intent(MainActivity.this, BlockActivity.class));
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
     }
@@ -492,5 +498,9 @@ public class MainActivity extends AppCompatActivity {
         }
         return new ArrayList<>();
     }
-
+    private ArrayList<SmsModel> getBlockedContacts() {
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+        return new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+    }
 }

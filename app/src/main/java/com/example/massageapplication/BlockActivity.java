@@ -76,6 +76,10 @@ public class BlockActivity extends AppCompatActivity {
         imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("refresh", true);
+                setResult(RESULT_OK,resultIntent);
                 finish();
             }
         });
@@ -113,7 +117,11 @@ public class BlockActivity extends AppCompatActivity {
         adapter.updateList(blockedMessagesList);
 
         // यूजर को सूचित करें
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("refresh", true);
+        setResult(RESULT_OK,resultIntent);
         Toast.makeText(BlockActivity.this, smsModel.getSender() + " has been unblocked.", Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {

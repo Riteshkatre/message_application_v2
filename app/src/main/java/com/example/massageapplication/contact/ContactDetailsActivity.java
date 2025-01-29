@@ -127,7 +127,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Block Contact")
                 .setMessage("Are you sure you want to block this contact?")
-                .setPositiveButton("Yes", (dialog, which) -> blockContact(number))
+                .setPositiveButton("Yes", (dialog, which) -> blockContact(name))
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .create().show();
     }
