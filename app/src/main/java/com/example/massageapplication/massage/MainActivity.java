@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     private SmsListener smsListener;
     private BroadcastReceiver newSmsReceiver;
+     boolean isFirstTime;
 
     @SuppressLint({"WrongViewCast",})
     @Override
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         smsAdapter = new SmsAdapter(smsList);
         b.messagesRecyclerView.setAdapter(smsAdapter);
         SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        boolean isFirstTime = preferences.getBoolean("isFirstTime", true);
+         isFirstTime = preferences.getBoolean("isFirstTime", true);
         prepareIntentLauncher();
         if (isFirstTime) {
 //            requestDefaultSmsRole();
@@ -360,7 +361,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadMessages();
+        if (!isFirstTime){
+            loadMessages();
+        }
 //        if (isDefaultSmsApp()) {
 //
 //        }
