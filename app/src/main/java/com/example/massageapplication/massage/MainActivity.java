@@ -284,7 +284,10 @@ public class MainActivity extends AppCompatActivity {
             Map<String, SmsModel> uniqueMessages = new HashMap<>();
             ContentResolver cr = getContentResolver();
             Cursor cursor = cr.query(Uri.parse("content://sms/"), null, null, null, "date DESC");
+
             if (cursor != null) {
+                List<SmsModel> archivedMessages = getArchivedMessages(); // Retrieve archived messages
+
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
                     String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
@@ -294,19 +297,34 @@ public class MainActivity extends AppCompatActivity {
                     String dateStr = android.text.format.DateFormat.format("yyyy-MM-dd", date).toString();
                     String timeStr = android.text.format.DateFormat.format("HH:mm", date).toString();
                     String name = getContactName(address);
-                    if (!uniqueMessages.containsKey(address)) {
-                        uniqueMessages.put(address, new SmsModel(name, body, dateStr, timeStr, dateMillis, "received"));
+
+                    SmsModel newMessage = new SmsModel(name, body, dateStr, timeStr, dateMillis, "received");
+
+                    // **Filter out archived messages**
+                    boolean isArchived = false;
+                    for (SmsModel archivedMessage : archivedMessages) {
+                        if (archivedMessage.getSender().equals(newMessage.getSender())) {
+                            isArchived = true;
+                            break;
+                        }
+                    }
+                    if (!isArchived && !uniqueMessages.containsKey(address)) {
+                        uniqueMessages.put(address, newMessage);
                     }
                 }
                 cursor.close();
             }
+
             tempList.addAll(uniqueMessages.values());
             Collections.sort(tempList, (m1, m2) -> Long.compare(m2.getDateMillis(), m1.getDateMillis()));
+
             DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new SmsDiffCallback(smsList, tempList));
+
             synchronized (smsListLock) {
                 smsList.clear();
                 smsList.addAll(tempList);
             }
+
             new Handler(Looper.getMainLooper()).post(() -> {
                 b.messagesRecyclerView.setVisibility(View.VISIBLE);
                 b.idPBLoading.setVisibility(View.GONE);

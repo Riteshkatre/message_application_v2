@@ -135,7 +135,7 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="@dimen/_30sdp"
+                android:layout_width="@dimen/_25sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_notification" />
@@ -147,7 +147,7 @@
                 android:layout_marginStart="@dimen/_20ssp"
                 android:text="Notification"
                 android:textColor="@color/black"
-                android:textSize="@dimen/_19ssp" />
+                android:textSize="@dimen/_17ssp" />
 
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/notificationSwitch"
@@ -165,7 +165,7 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="@dimen/_30sdp"
+                android:layout_width="@dimen/_25sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_archieve" />
@@ -177,7 +177,7 @@
                 android:layout_marginStart="@dimen/_20ssp"
                 android:text="Archive"
                 android:textColor="@color/black"
-                android:textSize="@dimen/_19ssp" />
+                android:textSize="@dimen/_17ssp" />
         </LinearLayout>
 
         <LinearLayout
@@ -189,7 +189,7 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="@dimen/_30sdp"
+                android:layout_width="@dimen/_25sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_block" />
@@ -202,7 +202,7 @@
                 android:layout_marginStart="@dimen/_20ssp"
                 android:text="Block"
                 android:textColor="@color/black"
-                android:textSize="@dimen/_19ssp" />
+                android:textSize="@dimen/_17ssp" />
         </LinearLayout>
 
         <LinearLayout
@@ -214,7 +214,7 @@
             android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="@dimen/_30sdp"
+                android:layout_width="@dimen/_25sdp"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_gravity="center"
                 android:src="@drawable/delete_icon" />
@@ -226,7 +226,7 @@
                 android:layout_marginStart="@dimen/_20ssp"
                 android:text="Delete Convertion"
                 android:textColor="@color/black"
-                android:textSize="@dimen/_19ssp" />
+                android:textSize="@dimen/_17ssp" />
         </LinearLayout>
 
     </LinearLayout>

@@ -147,7 +147,6 @@ public class ContactDetailsActivity extends AppCompatActivity {
         blockedContacts.add(blockedMessage);
         preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
     }
-
     private void unblockContact(String phoneNumber) {
         new AlertDialog.Builder(this)
                 .setTitle("Unblock Contact")
