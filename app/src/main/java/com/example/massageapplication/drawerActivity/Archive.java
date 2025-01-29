@@ -20,142 +20,141 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.massageapplication.BlockActivity;
 import com.example.massageapplication.R;
-import com.example.massageapplication.massage.MainActivity;
 import com.example.massageapplication.massage.MessageActivity;
-import com.example.massageapplication.massage.SmsAdapter;
 import com.example.massageapplication.massage.SmsModel;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class Archive extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ArchiveAdapter pinnedMessagesAdapter;
     private ActivityResultLauncher<Intent> sendSmsLauncher;
-    ImageView ivArchiveBack,ivUnArchieve;
-    ArrayList<SmsModel> pinnedMessages;
+    private ImageView ivArchiveBack, ivUnArchive;
+    private ArrayList<SmsModel> pinnedMessages;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_archive);
 
+        initViews();
+        setupRecyclerView();
+        setupListeners();
+        setupActivityLauncher();
+    }
+
+    private void initViews() {
         ivArchiveBack = findViewById(R.id.imgBack);
-        ivUnArchieve = findViewById(R.id.ivUnArchieve);
+        ivUnArchive = findViewById(R.id.ivUnArchieve);
         recyclerView = findViewById(R.id.rcvArcheiv);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-       pinnedMessages = getArchivedMessages();
-        pinnedMessagesAdapter = new ArchiveAdapter(pinnedMessages);
-        recyclerView.setAdapter(pinnedMessagesAdapter);
-
-        pinnedMessagesAdapter.setOnItemClickListener(new ArchiveAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position, SmsModel smsModel) {
-                Intent intent = new Intent(Archive.this, MessageActivity.class);
-                intent.putExtra("address", smsModel.getSender());
-                intent.putExtra("date", smsModel.getSender());
-                sendSmsLauncher.launch(intent);
-
-
-            }
-
-            @Override
-            public void longClickListener(int position, SmsModel smsModel) {
-                ivUnArchieve.setVisibility(View.VISIBLE);
-                ivUnArchieve.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // अनब्लॉक करने से पहले पुष्टि डायलॉग दिखाएं
-                        showConfirmationDialog(smsModel);
-                    }
-                });
-            }
-        });
-
-        ivArchiveBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-
-                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-
-            }
-        });
-
+        // Apply window insets for a smooth UI experience
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
 
-        sendSmsLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK) {
-                Intent data = result.getData();
-                if (data != null) {
-                    getArchivedMessages();
-                }
+    private void setupRecyclerView() {
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        pinnedMessages = getArchivedMessages();
+        pinnedMessagesAdapter = new ArchiveAdapter(pinnedMessages);
+        recyclerView.setAdapter(pinnedMessagesAdapter);
+    }
+
+    private void setupListeners() {
+        ivArchiveBack.setOnClickListener(v -> {
+            finish();
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        });
+
+        pinnedMessagesAdapter.setOnItemClickListener(new ArchiveAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position, SmsModel smsModel) {
+                openMessageActivity(smsModel);
+            }
+
+            @Override
+            public void longClickListener(int position, SmsModel smsModel) {
+                ivUnArchive.setVisibility(View.VISIBLE);
+                ivUnArchive.setOnClickListener(v -> showConfirmationDialog(smsModel));
             }
         });
+    }
+
+    private void setupActivityLauncher() {
+        sendSmsLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK) {
+                getArchivedMessages(); // Refresh data
+            }
+        });
+    }
+
+    private void openMessageActivity(SmsModel smsModel) {
+        Intent intent = new Intent(Archive.this, MessageActivity.class);
+        intent.putExtra("address", smsModel.getSender());
+        intent.putExtra("date", smsModel.getSender());
+        sendSmsLauncher.launch(intent);
     }
 
     private ArrayList<SmsModel> getArchivedMessages() {
         SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
         String json = preferences.getString("ArchivedMessagesList", null);
-        Log.e("selectedMessagesList3",json);
+        Log.e("selectedMessagesList", json != null ? json : "No archived messages");
 
         if (json != null) {
-            Gson gson = new Gson();
-            return gson.fromJson(json, new TypeToken<List<SmsModel>>() {}.getType());
+            return new Gson().fromJson(json, new TypeToken<List<SmsModel>>() {}.getType());
         }
-
         return new ArrayList<>();
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
-        // अनब्लॉक करने के लिए पुष्टि डायलॉग
         new AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to UnArchive this user?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        unarchivedUser(smsModel);
-                        ivUnArchieve.setVisibility(View.GONE);
-                    }
+                .setMessage("Are you sure you want to unarchive this user?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    unarchiveUser(smsModel);
+                    ivUnArchive.setVisibility(View.GONE);
                 })
                 .setNegativeButton("No", null)
                 .create()
                 .show();
     }
 
-    private void unarchivedUser(SmsModel smsModel) {
-        // ब्लॉक किए गए उपयोगकर्ता को लिस्ट से हटा दें
+    private void unarchiveUser(SmsModel smsModel) {
+        // Remove from archive list
         pinnedMessages.remove(smsModel);
 
-        // SharedPreferences को अपडेट करें
         SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
 
-
-
-        // अपडेट की गई लिस्ट को JSON में बदलें
         String updatedJson = new Gson().toJson(pinnedMessages);
         editor.putString("ArchivedMessagesList", updatedJson);
         editor.apply();
 
-        // RecyclerView को अपडेट करें
+        SharedPreferences mainPreferences = getSharedPreferences("MainMessages", MODE_PRIVATE);
+        String mainJson = mainPreferences.getString("MainMessagesList", null);
+        ArrayList<SmsModel> mainMessages = new ArrayList<>();
+
+        if (mainJson != null) {
+            mainMessages = new Gson().fromJson(mainJson, new TypeToken<List<SmsModel>>() {}.getType());
+        }
+        mainMessages.add(smsModel);
+
+        // Save the updated main message list
+        SharedPreferences.Editor mainEditor = mainPreferences.edit();
+        mainEditor.putString("MainMessagesList", new Gson().toJson(mainMessages));
+        mainEditor.apply();
+
         pinnedMessagesAdapter.updateList(pinnedMessages);
 
-        // यूजर को सूचित करें
-        Toast.makeText(Archive.this, smsModel.getSender() + " has been unArchive.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(Archive.this, smsModel.getSender() + " has been unarchived.", Toast.LENGTH_SHORT).show();
+
+        finish();
     }
-
-
 }

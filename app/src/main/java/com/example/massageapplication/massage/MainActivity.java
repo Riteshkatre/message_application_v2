@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
                     sendSmsLauncher.launch(intent);
                 }
             }
+
             @Override
             public void longClickListener(int position, SmsModel smsModel) {
                 b.mainArchiveLayout.setVisibility(View.VISIBLE);
@@ -131,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
             }
+
             @SuppressLint("SetTextI18n")
             @Override
             public void onSelectionCountChanged(int count, SmsModel smsModel) {
@@ -229,14 +231,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 smsAdapter.search(s.toString(), b.messagesRecyclerView, b.llNoData);
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
+
     private void updateToolBar(Boolean isSearchActive) {
         if (isSearchActive) {
             b.llSearch.setVisibility(View.VISIBLE);
@@ -246,9 +252,11 @@ public class MainActivity extends AppCompatActivity {
             b.imgMainClose.setVisibility(View.GONE);
         }
     }
+
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_SMS, android.Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_CODE);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -276,7 +284,10 @@ public class MainActivity extends AppCompatActivity {
             Map<String, SmsModel> uniqueMessages = new HashMap<>();
             ContentResolver cr = getContentResolver();
             Cursor cursor = cr.query(Uri.parse("content://sms/"), null, null, null, "date DESC");
+
             if (cursor != null) {
+                List<SmsModel> archivedMessages = getArchivedMessages(); // Retrieve archived messages
+
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
                     String address = cursor.getString(cursor.getColumnIndexOrThrow("address"));
@@ -286,19 +297,34 @@ public class MainActivity extends AppCompatActivity {
                     String dateStr = android.text.format.DateFormat.format("yyyy-MM-dd", date).toString();
                     String timeStr = android.text.format.DateFormat.format("HH:mm", date).toString();
                     String name = getContactName(address);
-                    if (!uniqueMessages.containsKey(address)) {
-                        uniqueMessages.put(address, new SmsModel(name, body, dateStr, timeStr, dateMillis, "received"));
+
+                    SmsModel newMessage = new SmsModel(name, body, dateStr, timeStr, dateMillis, "received");
+
+                    // **Filter out archived messages**
+                    boolean isArchived = false;
+                    for (SmsModel archivedMessage : archivedMessages) {
+                        if (archivedMessage.getSender().equals(newMessage.getSender())) {
+                            isArchived = true;
+                            break;
+                        }
+                    }
+                    if (!isArchived && !uniqueMessages.containsKey(address)) {
+                        uniqueMessages.put(address, newMessage);
                     }
                 }
                 cursor.close();
             }
+
             tempList.addAll(uniqueMessages.values());
             Collections.sort(tempList, (m1, m2) -> Long.compare(m2.getDateMillis(), m1.getDateMillis()));
+
             DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new SmsDiffCallback(smsList, tempList));
+
             synchronized (smsListLock) {
                 smsList.clear();
                 smsList.addAll(tempList);
             }
+
             new Handler(Looper.getMainLooper()).post(() -> {
                 b.messagesRecyclerView.setVisibility(View.VISIBLE);
                 b.idPBLoading.setVisibility(View.GONE);
@@ -306,11 +332,13 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
+
     private boolean isBlocked(String phoneNumber) {
         SharedPreferences sharedPreferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
         Set<String> blockedContacts = sharedPreferences.getStringSet("BlockedList", new HashSet<>());
         return blockedContacts.contains(phoneNumber);
     }
+
     private String getContactName(String phoneNumber) {
         if (contactCache.containsKey(phoneNumber)) {
             return contactCache.get(phoneNumber);
@@ -359,11 +387,41 @@ public class MainActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
     }
+
+    private void unarchiveMessage(SmsModel smsModel) {
+        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        List<SmsModel> archivedMessages = getArchivedMessages();
+
+        // Remove the unarchived message
+        boolean isRemoved = archivedMessages.removeIf(archivedMessage -> archivedMessage.getSender().equals(smsModel.getSender()));
+
+        if (isRemoved) {
+            // Save the updated archived messages list
+            Gson gson = new Gson();
+            String json = gson.toJson(archivedMessages);
+            editor.putString("ArchivedMessagesList", json);
+            editor.apply();
+
+            // Refresh the message list
+            synchronized (smsListLock) {
+                smsList.add(0, smsModel); // Add unarchived message back to the main list
+            }
+            runOnUiThread(() -> {
+                smsAdapter.notifyDataSetChanged(); // Refresh RecyclerView
+                Toast.makeText(MainActivity.this, "Message unarchived successfully.", Toast.LENGTH_SHORT).show();
+            });
+        } else {
+            Toast.makeText(MainActivity.this, "Message not found in archive.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void requestDefaultSmsApp() {
         Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
         intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, getPackageName());
         startActivity(intent);
     }
+
     private boolean isDefaultSmsApp() {
         String defaultSmsPackage = Telephony.Sms.getDefaultSmsPackage(this);
         return defaultSmsPackage != null && defaultSmsPackage.equals(getPackageName());
@@ -445,6 +503,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Messages archived successfully.", Toast.LENGTH_SHORT).show();
         }
     }
+
     private List<SmsModel> getArchivedMessages() {
         SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
         String json = preferences.getString("ArchivedMessagesList", null);
