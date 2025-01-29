@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
                     sendSmsLauncher.launch(intent);
                 }
             }
+
             @Override
             public void longClickListener(int position, SmsModel smsModel) {
                 b.mainArchiveLayout.setVisibility(View.VISIBLE);
@@ -131,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
             }
+
             @SuppressLint("SetTextI18n")
             @Override
             public void onSelectionCountChanged(int count, SmsModel smsModel) {
@@ -229,14 +231,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 smsAdapter.search(s.toString(), b.messagesRecyclerView, b.llNoData);
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
+
     private void updateToolBar(Boolean isSearchActive) {
         if (isSearchActive) {
             b.llSearch.setVisibility(View.VISIBLE);
@@ -246,9 +252,11 @@ public class MainActivity extends AppCompatActivity {
             b.imgMainClose.setVisibility(View.GONE);
         }
     }
+
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_SMS, android.Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_CODE);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -306,11 +314,13 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
+
     private boolean isBlocked(String phoneNumber) {
         SharedPreferences sharedPreferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
         Set<String> blockedContacts = sharedPreferences.getStringSet("BlockedList", new HashSet<>());
         return blockedContacts.contains(phoneNumber);
     }
+
     private String getContactName(String phoneNumber) {
         if (contactCache.containsKey(phoneNumber)) {
             return contactCache.get(phoneNumber);
@@ -359,11 +369,13 @@ public class MainActivity extends AppCompatActivity {
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
     }
+
     private void requestDefaultSmsApp() {
         Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
         intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, getPackageName());
         startActivity(intent);
     }
+
     private boolean isDefaultSmsApp() {
         String defaultSmsPackage = Telephony.Sms.getDefaultSmsPackage(this);
         return defaultSmsPackage != null && defaultSmsPackage.equals(getPackageName());
@@ -445,6 +457,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "Messages archived successfully.", Toast.LENGTH_SHORT).show();
         }
     }
+
     private List<SmsModel> getArchivedMessages() {
         SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
         String json = preferences.getString("ArchivedMessagesList", null);

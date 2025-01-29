@@ -2,15 +2,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/_5sdp"
-    android:padding="@dimen/_5sdp">
+    android:layout_margin="@dimen/_5sdp">
 
     <!-- Profile Circle Layout -->
     <LinearLayout
         android:id="@+id/nameLay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_5sdp"
         android:background="@drawable/circle_background"
         android:gravity="center">
 
@@ -47,10 +45,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/tvTime"
-            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginTop="@dimen/_3sdp"
             android:background="@drawable/bg_other_message_send"
             android:orientation="horizontal"
-            android:padding="@dimen/_10sdp">
+            android:padding="@dimen/_5sdp">
 
             <TextView
                 android:id="@+id/tvMyMessage"
@@ -63,8 +61,7 @@
                 android:singleLine="false"
                 android:text="Hello Ritesh"
                 android:textColor="@color/black"
-                android:textSize="@dimen/_12sdp"
-                android:textStyle="bold" />
+                android:textSize="@dimen/_13sdp"/>
         </LinearLayout>
     </RelativeLayout>
 </RelativeLayout>

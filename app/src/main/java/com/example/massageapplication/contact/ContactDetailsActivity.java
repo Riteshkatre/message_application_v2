@@ -22,7 +22,8 @@ import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 
 public class ContactDetailsActivity extends AppCompatActivity {
-    ActivityContactDetalisBinding b;
+    private ActivityContactDetalisBinding b;
+    private String name, number;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,190 +31,138 @@ public class ContactDetailsActivity extends AppCompatActivity {
         b = ActivityContactDetalisBinding.inflate(getLayoutInflater());
         setContentView(b.getRoot());
 
-        String name = getIntent().getStringExtra("name");
-        String number = getIntent().getStringExtra("number");
+        name = getIntent().getStringExtra("name");
+        number = getIntent().getStringExtra("number");
 
-        b.name.setText(name);
+        if (name != null) {
+            b.name.setText(name);
+            b.shortName.setText(String.valueOf(name.charAt(0)).toUpperCase());
+        }
         b.number.setText(number);
 
-        if (name != null && name.length() > 0) {
-            String initial = String.valueOf(name.charAt(0)).toUpperCase();
-            b.shortName.setText(initial);
-        }
+        checkBlockStatus(number);
+        setupNotificationSwitch();
 
-        checkBlockStatus(name);
+        b.ivArchiveBack.setOnClickListener(v -> finish());
+        b.callImage.setOnClickListener(v -> makePhoneCall());
+        b.llDeleteConversation.setOnClickListener(v ->
+                Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show()
+        );
+        b.layBlock.setOnClickListener(v -> handleBlockAction());
+    }
 
-        b.ivArchiveBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+    // Setup Notification Switch
+    private void setupNotificationSwitch() {
+        boolean isEnabled = isNotificationEnabled(number);
+        b.notificationSwitch.setChecked(isEnabled);
 
-        b.callImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Get the phone number
-                String phoneNumber = b.number.getText().toString();
-
-                // Check for CALL_PHONE permission
-                if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-                    // Create call intent
-                    Intent callIntent = new Intent(Intent.ACTION_CALL);
-                    callIntent.setData(Uri.parse("tel:" + phoneNumber));
-                    startActivity(callIntent);
-                } else {
-                    // Request the CALL_PHONE permission
-                    requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
-                }
-            }
-        });
-
-
-        b.layBlock.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // अगर संपर्क पहले से ब्लॉक है तो अनब्लॉक करें, वरना ब्लॉक करें
-                if (b.tvBlock.getText().toString().equals("Block")) {
-                    // ब्लॉक करने के लिए कन्फर्मेशन डायलॉग
-                    AlertDialog.Builder builder = new AlertDialog.Builder(ContactDetailsActivity.this);
-                    builder.setTitle("Block Contact").setMessage("Are you sure you want to block this contact?")
-                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // संपर्क को ब्लॉक करें
-                                    blockContact(name);
-                                }
-                            })
-                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // "No" दबाने पर डायलॉग को बंद करें
-                                    dialog.dismiss();
-                                }
-                            }).create().show();
-                } else {
-                    // अनब्लॉक करने के लिए कन्फर्मेशन डायलॉग
-                    unblockContact(number);
-                }
-            }
+        b.notificationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            setNotificationPreference(number, isChecked);
+            String message = isChecked ? "Notifications Enabled" : "Notifications Disabled";
+            Toast.makeText(this, message + " for " + name, Toast.LENGTH_SHORT).show();
         });
     }
 
-    private void checkBlockStatus(String phoneNumber) {
-        // ब्लॉक किए गए संपर्कों की स्थिति चेक करें
-        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+    private boolean isNotificationEnabled(String phoneNumber) {
+        SharedPreferences preferences = getSharedPreferences("NotificationPreferences", MODE_PRIVATE);
+        return preferences.getBoolean(phoneNumber, true);
+    }
 
-        // अगर संपर्क ब्लॉक है, तो UI में अनब्लॉक दिखाएं
-        for (SmsModel contact : blockedContacts) {
-            if (contact.getSender().equals(phoneNumber)) {
-                b.tvBlock.setText("Unblock");
-                return; // Exit as soon as the contact is found
-            }
+    private void setNotificationPreference(String phoneNumber, boolean isEnabled) {
+        SharedPreferences preferences = getSharedPreferences("NotificationPreferences", MODE_PRIVATE);
+        preferences.edit().putBoolean(phoneNumber, isEnabled).apply();
+    }
+
+    private void makePhoneCall() {
+        String phoneNumber = getValidPhoneNumber();
+        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
+            Toast.makeText(this, "Invalid phone number", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        // अगर संपर्क ब्लॉक नहीं है, तो UI में ब्लॉक दिखाएं
-        b.tvBlock.setText("Block");
+        if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            startActivity(new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phoneNumber)));
+        } else {
+            requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
+        }
+    }
+
+    private String getValidPhoneNumber() {
+        return number != null && !number.trim().isEmpty() ? number : null;
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, you can now make the call
-                Toast.makeText(this, "Permission granted. Try again to make the call.", Toast.LENGTH_SHORT).show();
-            } else {
-                // Permission denied
-                Toast.makeText(this, "Permission denied. Cannot make the call.", Toast.LENGTH_SHORT).show();
-            }
+        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Permission granted. Try again to make the call.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Permission denied. Cannot make the call.", Toast.LENGTH_SHORT).show();
         }
     }
 
+    private void checkBlockStatus(String phoneNumber) {
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+
+        for (SmsModel contact : blockedContacts) {
+            if (contact.getSender().equals(phoneNumber)) {
+                b.tvBlock.setText("Unblock");
+                return;
+            }
+        }
+        b.tvBlock.setText("Block");
+    }
+
+    private void handleBlockAction() {
+        if (b.tvBlock.getText().toString().equals("Block")) {
+            showBlockDialog();
+        } else {
+            unblockContact(number);
+        }
+    }
+
+    private void showBlockDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Block Contact")
+                .setMessage("Are you sure you want to block this contact?")
+                .setPositiveButton("Yes", (dialog, which) -> blockContact(number))
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .create().show();
+    }
 
     private void blockContact(String phoneNumber) {
-        // ब्लॉक किए गए संपर्क के लिए SmsModel बनाएँ
-        SmsModel blockedMessage = new SmsModel(
-                phoneNumber,   // sender (फोन नंबर)
-                "Blocked",     // body (मैसेज का कंटेंट)
-                "",            // date (डेटा, आप इसे खाली छोड़ सकते हैं या सेट कर सकते हैं)
-                "",            // time (समय, आप इसे खाली छोड़ सकते हैं या सेट कर सकते हैं)
-                System.currentTimeMillis(),  // dateMillis (वर्तमान टाइमस्टैम्प)
-                "Blocked"      // status (ब्लॉक स्थिति)
-        );
-
-        blockedMessage.setBlocked(true);  // संपर्क को ब्लॉक के रूप में चिह्नित करें
-
-        // ब्लॉक किए गए संपर्क को SharedPreferences में सेव करें
+        SmsModel blockedMessage = new SmsModel(phoneNumber, "Blocked", "", "", System.currentTimeMillis(), "Blocked");
+        blockedMessage.setBlocked(true);
         saveBlockedContact(blockedMessage);
-
-        Toast.makeText(ContactDetailsActivity.this, "Contact has been blocked.", Toast.LENGTH_SHORT).show();
-
-        // ब्लॉक किए गए संपर्कों की स्क्रीन पर रीडायरेक्ट करें
-        Intent intent = new Intent(ContactDetailsActivity.this, BlockActivity.class);
-        startActivity(intent);
-
-        // UI को ब्लॉक से अनब्लॉक में बदलें
+        Toast.makeText(this, "Contact has been blocked.", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(this, BlockActivity.class));
         b.tvBlock.setText("Unblock");
     }
 
     private void saveBlockedContact(SmsModel blockedMessage) {
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-
-        // वर्तमान में ब्लॉक किए गए संपर्क प्राप्त करें
-        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
-
-        // नया ब्लॉक किया गया संपर्क जोड़ें
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>(){}.getType());
         blockedContacts.add(blockedMessage);
-
-        // अपडेट की गई लिस्ट को SharedPreferences में सेव करें
-        String updatedJson = new Gson().toJson(blockedContacts);
-        editor.putString("blockedContacts", updatedJson);
-        editor.apply();
+        preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
     }
 
     private void unblockContact(String phoneNumber) {
-        // कन्फर्मेशन डायलॉग दिखाएं
-        AlertDialog.Builder builder = new AlertDialog.Builder(ContactDetailsActivity.this);
-        builder.setTitle("Unblock Contact")
+        new AlertDialog.Builder(this)
+                .setTitle("Unblock Contact")
                 .setMessage("Are you sure you want to unblock this contact?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // अगर हां, तो अनब्लॉक करें
-                        performUnblock(phoneNumber);
-                    }
-                })
-                .setNegativeButton("No", null)  // "No" दबाने पर कुछ नहीं होगा, डायलॉग बंद हो जाएगा
+                .setPositiveButton("Yes", (dialog, which) -> performUnblock(phoneNumber))
+                .setNegativeButton("No", null)
                 .create().show();
     }
 
     private void performUnblock(String phoneNumber) {
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
-
-        // ब्लॉक लिस्ट से संपर्क को हटाएं
-        for (int i = 0; i < blockedContacts.size(); i++) {
-            if (blockedContacts.get(i).getSender().equals(phoneNumber)) {
-                blockedContacts.remove(i);
-                break;
-            }
-        }
-
-        // SharedPreferences को अपडेट करें
-        SharedPreferences.Editor editor = preferences.edit();
-        String updatedJson = new Gson().toJson(blockedContacts);
-        editor.putString("blockedContacts", updatedJson);
-        editor.apply();
-
-        // UI को Unblock से Block में बदलें
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>(){}.getType());
+        blockedContacts.removeIf(contact -> contact.getSender().equals(phoneNumber));
+        preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
         b.tvBlock.setText("Block");
-
-        Toast.makeText(ContactDetailsActivity.this, "Contact has been unblocked.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Contact has been unblocked.", Toast.LENGTH_SHORT).show();
     }
 }
