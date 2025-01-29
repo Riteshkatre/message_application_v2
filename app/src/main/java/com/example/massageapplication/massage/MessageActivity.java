@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.massageapplication.R;
+import com.example.massageapplication.ScheduleDialog;
 import com.example.massageapplication.contact.ContactDetailsActivity;
 import com.example.massageapplication.databinding.ActivityMessageBinding;
 
@@ -59,8 +60,10 @@ public class MessageActivity extends AppCompatActivity {
         setContentView(b.getRoot());
 
         b.imgCalender.setOnClickListener(v -> {
-            // Implement calendar click action
+            ScheduleDialog scheduleDialog = new ScheduleDialog();
+            scheduleDialog.show(getSupportFragmentManager(), "ScheduleDialog");
         });
+
 
         // Get sender info from Intent
         senderAddress = getIntent().getStringExtra("address");

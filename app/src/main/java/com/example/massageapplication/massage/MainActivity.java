@@ -117,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
             public void longClickListener(int position, SmsModel smsModel) {
                 b.mainArchiveLayout.setVisibility(View.VISIBLE);
                 b.llOne.setVisibility(View.GONE);
+
                 b.layArchive.icPin.setOnClickListener(view -> {
                     List<SmsModel> selectedMessagesList = smsAdapter.getSelectedItems();
                     if (selectedMessagesList.isEmpty()) {
@@ -215,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
         b.imgMainClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -227,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
         b.searchText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
