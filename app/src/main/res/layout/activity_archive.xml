@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".drawerActivity.Archive">
 
     <RelativeLayout
@@ -32,12 +33,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_10sdp"
+                android:layout_toEndOf="@+id/imgBack"
                 android:text="Archive"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_20ssp"
                 android:textStyle="bold"
                 android:visibility="visible"
-                android:layout_toEndOf="@+id/imgBack"
                 tools:ignore="HardcodedText" />
 
             <ImageView
@@ -46,9 +47,9 @@
                 android:layout_height="@dimen/_25sdp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:visibility="gone"
                 android:layout_marginEnd="@dimen/_15sdp"
-                android:src="@drawable/ic_archieve"/>
+                android:src="@drawable/ic_archieve"
+                android:visibility="gone" />
         </RelativeLayout>
 
 
@@ -58,6 +59,7 @@
             android:layout_height="1dp"
             android:layout_below="@+id/llOne"
             android:background="@color/translucent" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rcvArcheiv"
             android:layout_width="match_parent"
@@ -66,15 +68,15 @@
             android:background="@color/white" />
 
         <LinearLayout
-            android:id="@+id/linNoData"
-            android:visibility="gone"
+            android:id="@+id/llNoData"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:layout_centerInParent="true"
+            android:layout_gravity="center"
             android:background="@color/white"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -87,7 +89,7 @@
                 android:layout_marginTop="@dimen/_7sdp"
                 android:text="No Data Found"
                 android:textSize="@dimen/_15sdp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
         </LinearLayout>
 

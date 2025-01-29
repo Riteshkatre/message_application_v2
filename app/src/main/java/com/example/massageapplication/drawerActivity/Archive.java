@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,7 +20,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.massageapplication.MmsReciever;
 import com.example.massageapplication.R;
 import com.example.massageapplication.massage.MessageActivity;
 import com.example.massageapplication.massage.SmsModel;
@@ -34,6 +34,7 @@ public class Archive extends AppCompatActivity {
     private ArchiveAdapter pinnedMessagesAdapter;
     private ActivityResultLauncher<Intent> sendSmsLauncher;
     private ImageView ivArchiveBack, ivUnArchive;
+    private LinearLayout llNoData;
     private ArrayList<SmsModel> pinnedMessages;
 
     @Override
@@ -52,6 +53,7 @@ public class Archive extends AppCompatActivity {
         ivArchiveBack = findViewById(R.id.imgBack);
         ivUnArchive = findViewById(R.id.ivUnArchieve);
         recyclerView = findViewById(R.id.rcvArcheiv);
+        llNoData = findViewById(R.id.llNoData); // Initialize "No Data Found" layout
 
         // Apply window insets for a smooth UI experience
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -66,6 +68,8 @@ public class Archive extends AppCompatActivity {
         pinnedMessages = getArchivedMessages();
         pinnedMessagesAdapter = new ArchiveAdapter(pinnedMessages);
         recyclerView.setAdapter(pinnedMessagesAdapter);
+
+        checkEmptyState(); // Check if list is empty
     }
 
     private void setupListeners() {
@@ -92,6 +96,7 @@ public class Archive extends AppCompatActivity {
         sendSmsLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK) {
                 getArchivedMessages(); // Refresh data
+                checkEmptyState(); // Check if empty
             }
         });
     }
@@ -109,17 +114,21 @@ public class Archive extends AppCompatActivity {
         Log.e("selectedMessagesList", json != null ? json : "No archived messages");
 
         if (json != null) {
-            return new Gson().fromJson(json, new TypeToken<List<SmsModel>>() {
-            }.getType());
+            return new Gson().fromJson(json, new TypeToken<List<SmsModel>>() {}.getType());
         }
         return new ArrayList<>();
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
-        new AlertDialog.Builder(this).setMessage("Are you sure you want to unarchive this user?").setPositiveButton("Yes", (dialog, which) -> {
-            unarchiveUser(smsModel);
-            ivUnArchive.setVisibility(View.GONE);
-        }).setNegativeButton("No", null).create().show();
+        new AlertDialog.Builder(this)
+                .setMessage("Are you sure you want to unarchive this user?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    unarchiveUser(smsModel);
+                    ivUnArchive.setVisibility(View.GONE);
+                })
+                .setNegativeButton("No", null)
+                .create()
+                .show();
     }
 
     private void unarchiveUser(SmsModel smsModel) {
@@ -138,8 +147,7 @@ public class Archive extends AppCompatActivity {
         ArrayList<SmsModel> mainMessages = new ArrayList<>();
 
         if (mainJson != null) {
-            mainMessages = new Gson().fromJson(mainJson, new TypeToken<List<SmsModel>>() {
-            }.getType());
+            mainMessages = new Gson().fromJson(mainJson, new TypeToken<List<SmsModel>>() {}.getType());
         }
         mainMessages.add(smsModel);
 
@@ -149,11 +157,23 @@ public class Archive extends AppCompatActivity {
         mainEditor.apply();
 
         pinnedMessagesAdapter.updateList(pinnedMessages);
+        checkEmptyState(); // Check if empty after unarchiving
+
         Intent resultIntent = new Intent();
         resultIntent.putExtra("refresh", true);
-        setResult(RESULT_OK,resultIntent);
+        setResult(RESULT_OK, resultIntent);
+
         Toast.makeText(Archive.this, smsModel.getSender() + " has been unarchived.", Toast.LENGTH_SHORT).show();
         finish();
     }
 
+    private void checkEmptyState() {
+        if (pinnedMessages.isEmpty()) {
+            llNoData.setVisibility(View.VISIBLE);
+            recyclerView.setVisibility(View.GONE);
+        } else {
+            llNoData.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
+        }
+    }
 }
