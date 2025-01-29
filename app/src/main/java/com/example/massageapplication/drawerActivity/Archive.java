@@ -151,13 +151,10 @@ public class Archive extends AppCompatActivity {
         mainEditor.putString("MainMessagesList", new Gson().toJson(mainMessages));
         mainEditor.apply();
 
-        // ✅ Refresh UI
         pinnedMessagesAdapter.updateList(pinnedMessages);
 
-        // Notify main message list that an item has been added (if you have an adapter for the main list)
         Toast.makeText(Archive.this, smsModel.getSender() + " has been unarchived.", Toast.LENGTH_SHORT).show();
 
-        // ✅ Close archive activity and refresh main message list
         finish();
     }
 }
