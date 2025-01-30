@@ -15,11 +15,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.massageapplication.BlockActivity;
 import com.example.massageapplication.databinding.ActivityContactDetalisBinding;
+import com.example.massageapplication.drawerActivity.Archive;
+import com.example.massageapplication.massage.MainActivity;
 import com.example.massageapplication.massage.SmsModel;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ContactDetailsActivity extends AppCompatActivity {
     private ActivityContactDetalisBinding b;
@@ -40,7 +43,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         }
         b.number.setText(number);
 
-        checkBlockStatus(number);
+        checkBlockStatus(number); // Check block status on activity creation
         setupNotificationSwitch();
 
         b.ivArchiveBack.setOnClickListener(v -> finish());
@@ -49,8 +52,75 @@ public class ContactDetailsActivity extends AppCompatActivity {
                 Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show()
         );
         b.layBlock.setOnClickListener(v -> handleBlockAction());
+
+        b.llArchiveContact.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
     }
 
+    private void handleBlockAction() {
+        if (b.tvBlock.getText().toString().equals("Block")) {
+            showBlockDialog();
+        } else {
+            Toast.makeText(this, "This contact is already blocked.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showBlockDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Block Contact")
+                .setMessage("Are you sure you want to block this contact?")
+                .setPositiveButton("Yes", (dialog, which) -> blockContact(number))
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .create().show();
+    }
+
+    private void blockContact(String phoneNumber) {
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>(){}.getType());
+
+        // Check if the contact is already blocked
+        for (SmsModel contact : blockedContacts) {
+            if (contact.getSender().equals(phoneNumber)) {
+                Toast.makeText(this, "यह नंबर पहले से ब्लॉक है।", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        // Add the contact to the blocked list
+        SmsModel blockedMessage = new SmsModel(phoneNumber, "Blocked", "", "", System.currentTimeMillis(), "Blocked");
+        blockedMessage.setBlocked(true);
+        blockedContacts.add(blockedMessage);
+        preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
+
+        Toast.makeText(this, "Contact has been blocked.", Toast.LENGTH_SHORT).show();
+
+        // Navigate to BlockActivity
+        Intent intent = new Intent(ContactDetailsActivity.this, BlockActivity.class);
+        startActivity(intent);
+
+        // Update UI
+        checkBlockStatus(phoneNumber);
+    }
+
+    private void checkBlockStatus(String phoneNumber) {
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+
+        for (SmsModel contact : blockedContacts) {
+            if (contact.getSender().equals(phoneNumber)) {
+                b.tvBlock.setText("Unblock");
+                return;
+            }
+        }
+        b.tvBlock.setText("Block");
+    }
+
+    // Other methods (makePhoneCall, setupNotificationSwitch, etc.) remain unchanged
     // Setup Notification Switch
     private void setupNotificationSwitch() {
         boolean isEnabled = isNotificationEnabled(number);
@@ -91,77 +161,4 @@ public class ContactDetailsActivity extends AppCompatActivity {
         return number != null && !number.trim().isEmpty() ? number : null;
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 1 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Permission granted. Try again to make the call.", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Permission denied. Cannot make the call.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void checkBlockStatus(String phoneNumber) {
-        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
-
-        for (SmsModel contact : blockedContacts) {
-            if (contact.getSender().equals(phoneNumber)) {
-                b.tvBlock.setText("Unblock");
-                return;
-            }
-        }
-        b.tvBlock.setText("Block");
-    }
-
-    private void handleBlockAction() {
-        if (b.tvBlock.getText().toString().equals("Block")) {
-            showBlockDialog();
-        } else {
-            unblockContact(number);
-        }
-    }
-
-    private void showBlockDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Block Contact")
-                .setMessage("Are you sure you want to block this contact?")
-                .setPositiveButton("Yes", (dialog, which) -> blockContact(name))
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .create().show();
-    }
-
-    private void blockContact(String phoneNumber) {
-        SmsModel blockedMessage = new SmsModel(phoneNumber, "Blocked", "", "", System.currentTimeMillis(), "Blocked");
-        blockedMessage.setBlocked(true);
-        saveBlockedContact(blockedMessage);
-        Toast.makeText(this, "Contact has been blocked.", Toast.LENGTH_SHORT).show();
-        startActivity(new Intent(this, BlockActivity.class));
-        b.tvBlock.setText("Unblock");
-    }
-
-    private void saveBlockedContact(SmsModel blockedMessage) {
-        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>(){}.getType());
-        blockedContacts.add(blockedMessage);
-        preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
-    }
-    private void unblockContact(String phoneNumber) {
-        new AlertDialog.Builder(this)
-                .setTitle("Unblock Contact")
-                .setMessage("Are you sure you want to unblock this contact?")
-                .setPositiveButton("Yes", (dialog, which) -> performUnblock(phoneNumber))
-                .setNegativeButton("No", null)
-                .create().show();
-    }
-
-    private void performUnblock(String phoneNumber) {
-        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>(){}.getType());
-        blockedContacts.removeIf(contact -> contact.getSender().equals(phoneNumber));
-        preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
-        b.tvBlock.setText("Block");
-        Toast.makeText(this, "Contact has been unblocked.", Toast.LENGTH_SHORT).show();
-    }
 }

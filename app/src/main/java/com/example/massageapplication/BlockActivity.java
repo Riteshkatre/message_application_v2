@@ -1,8 +1,11 @@
 package com.example.massageapplication;
 
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -20,6 +23,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BlockActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -27,6 +32,7 @@ public class BlockActivity extends AppCompatActivity {
     LinearLayout linNoData;
     private BlockedAdapter adapter;
     private ArrayList<SmsModel> blockedMessagesList;
+    private final Map<String, String> contactCache = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,12 +99,32 @@ public class BlockActivity extends AppCompatActivity {
         ArrayList<SmsModel> blockedMessages = new ArrayList<>();
         for (SmsModel message : allMessages) {
             if (message.isBlocked()) {
+                String contactName = getContactName(message.getSender()); // Get contact name
+                message.setSender(contactName); // Update sender with contact name
                 blockedMessages.add(message);
             }
         }
-
         return blockedMessages;
     }
+
+    private String getContactName(String phoneNumber) {
+        if (contactCache.containsKey(phoneNumber)) {
+            return contactCache.get(phoneNumber);
+        }
+        ContentResolver contentResolver = getContentResolver();
+        Uri uri = Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
+        Cursor cursor = contentResolver.query(uri, new String[]{android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
+        String contactName = phoneNumber;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                contactName = cursor.getString(cursor.getColumnIndexOrThrow(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME));
+            }
+            cursor.close();
+        }
+        contactCache.put(phoneNumber, contactName);
+        return contactName;
+    }
+
 
     private void unblockUser(SmsModel smsModel) {
         // ब्लॉक किए गए उपयोगकर्ता को लिस्ट से हटा दें

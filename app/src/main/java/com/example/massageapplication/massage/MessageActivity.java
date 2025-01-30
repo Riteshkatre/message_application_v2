@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -30,6 +31,8 @@ import com.example.massageapplication.R;
 import com.example.massageapplication.ScheduleDialog;
 import com.example.massageapplication.contact.ContactDetailsActivity;
 import com.example.massageapplication.databinding.ActivityMessageBinding;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,6 +46,8 @@ public class MessageActivity extends AppCompatActivity {
     private String senderAddress;
     private String senderName;
     private String phoneNumber;
+    private final ArrayList<String> blockedNumbers = new ArrayList<>();
+
 
     private final ContentObserver smsObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
         @Override
@@ -185,7 +190,26 @@ public class MessageActivity extends AppCompatActivity {
             phoneNumber = getPhoneNumberFromContacts(senderAddress);
 
             if (phoneNumber != null) {
-                phoneNumber = PhoneNumberUtils.formatNumberToE164(phoneNumber, "IN"); // Adjust country code if needed
+                phoneNumber = PhoneNumberUtils.formatNumberToE164(phoneNumber, "IN"); // देश कोड सेट करें
+            }
+
+            // ब्लॉक किए गए नंबर की लिस्ट को पढ़ें
+            SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+            String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+            ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+
+            // चेक करें कि क्या यह नंबर ब्लॉक किया गया है
+            boolean isBlocked = false;
+            for (SmsModel blockedContact : blockedContacts) {
+                if (blockedContact.getSender().equals(phoneNumber)) {
+                    isBlocked = true;
+                    break;
+                }
+            }
+
+            if (isBlocked) {
+                runOnUiThread(() -> Toast.makeText(this, "यह नंबर ब्लॉक है, मैसेज नहीं दिखाया जाएगा", Toast.LENGTH_SHORT).show());
+                return; // अगर नंबर ब्लॉक किया गया है, तो मैसेज लोड न करें
             }
 
             Cursor cursor = cr.query(
@@ -220,24 +244,17 @@ public class MessageActivity extends AppCompatActivity {
                 }
                 cursor.close();
 
-                // Update messagesList in the main thread and notify the adapter
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    messagesList.clear(); // Clear the old data
-                    messagesList.addAll(newMessagesList); // Add the new data
-
-                    if (messagesList.isEmpty()) {
-                        Toast.makeText(this, "No messages found", Toast.LENGTH_SHORT).show();
-                    }
-                    messageAdapter.notifyDataSetChanged(); // Notify the adapter
+                    messagesList.clear();
+                    messagesList.addAll(newMessagesList);
+                    messageAdapter.notifyDataSetChanged();
                     if (!messagesList.isEmpty()) {
-                        b.rcvMassage.scrollToPosition(messagesList.size() - 1); // Scroll to the bottom
+                        b.rcvMassage.scrollToPosition(messagesList.size() - 1);
                     }
                 });
             }
         }).start();
     }
-
-
     @SuppressLint("Range")
     private String getPhoneNumberFromContacts(String contactName) {
         String phoneNumber = null;
@@ -265,8 +282,26 @@ public class MessageActivity extends AppCompatActivity {
         }
 
         if (phoneNumber == null || phoneNumber.isEmpty()) {
-            Toast.makeText(this, "Invalid phone number", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "अमान्य फोन नंबर", Toast.LENGTH_SHORT).show();
             return;
+        }
+
+        // ब्लॉक किए गए नंबर को चेक करें
+        SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
+        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+
+        boolean isBlocked = false;
+        for (SmsModel blockedContact : blockedContacts) {
+            if (blockedContact.getSender().equals(phoneNumber)) {
+                isBlocked = true;
+                break;
+            }
+        }
+
+        if (isBlocked) {
+            Toast.makeText(this, "आप इस नंबर को ब्लॉक कर चुके हैं, मैसेज नहीं भेजा जा सकता", Toast.LENGTH_SHORT).show();
+            return; // अगर नंबर ब्लॉक किया गया है, तो मैसेज भेजने से रोकें
         }
 
         try {
@@ -290,16 +325,16 @@ public class MessageActivity extends AppCompatActivity {
             messageAdapter.notifyItemInserted(messagesList.size() - 1);
             b.rcvMassage.smoothScrollToPosition(messagesList.size() - 1);
             b.etEditText.getText().clear();
-            Toast.makeText(this, "Message sent successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "मैसेज सफलतापूर्वक भेजा गया", Toast.LENGTH_SHORT).show();
+
             Intent resultIntent = new Intent();
             resultIntent.putExtra("refresh", true);
             setResult(RESULT_OK, resultIntent);
 
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to send message: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "मैसेज भेजने में विफलता: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
-
     private int getColorForInitial(String initial) {
         int hash = Math.abs(initial.hashCode());
         int[] colors = {Color.parseColor("#2b73ec")};

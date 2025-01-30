@@ -290,11 +290,11 @@ public class MainActivity extends AppCompatActivity {
             ContentResolver cr = getContentResolver();
             Cursor cursor = cr.query(Uri.parse("content://sms/"), null, null, null, "date DESC");
 
-            // ब्लॉक किए गए नंबर की लिस्ट को पढ़ें
+            // Retrieve the list of blocked contacts
             ArrayList<SmsModel> blockedContacts = getBlockedContacts();
 
             if (cursor != null) {
-                List<SmsModel> archivedMessages = getArchivedMessages(); // Archived मैसेज को पढ़ें
+                List<SmsModel> archivedMessages = getArchivedMessages(); // Read archived messages
 
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
 
                     SmsModel newMessage = new SmsModel(name, body, dateStr, timeStr, dateMillis, "received");
 
-                    // चेक करें कि क्या यह नंबर ब्लॉक किया गया है
+                    // Check if the sender is blocked
                     boolean isBlocked = false;
                     for (SmsModel blockedContact : blockedContacts) {
                         if (blockedContact.getSender().equals(address)) {
@@ -317,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    // Archived और ब्लॉक किए गए मैसेज को फ़िल्टर करें
+                    // Filter out archived and blocked messages
                     boolean isArchived = false;
                     for (SmsModel archivedMessage : archivedMessages) {
                         if (archivedMessage.getSender().equals(newMessage.getSender())) {
@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    // अगर मैसेज न तो Archived है और न ही ब्लॉक किया गया है, तो इसे लिस्ट में जोड़ें
+                    // Add the message to the list only if it is not archived and not blocked
                     if (!isArchived && !isBlocked && !uniqueMessages.containsKey(address)) {
                         uniqueMessages.put(address, newMessage);
                     }
@@ -351,7 +351,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
-
     private String getContactName(String phoneNumber) {
         if (contactCache.containsKey(phoneNumber)) {
             return contactCache.get(phoneNumber);

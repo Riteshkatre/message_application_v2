@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -19,8 +20,12 @@ import androidx.core.app.NotificationCompat;
 
 import com.example.massageapplication.massage.MainActivity;
 import com.example.massageapplication.massage.SmsModel;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class SmsListener extends BroadcastReceiver {
 
@@ -49,8 +54,13 @@ public class SmsListener extends BroadcastReceiver {
 
                     Log.d("SmsListener", "Sender: " + sender + ", Message: " + messageBody);
 
-                    String contactName = getContactName(context, sender);
+                    // Check if sender is blocked
+                    if (isBlockedUser(context, sender)) {
+                        Log.d("SmsListener", "Blocked user " + sender + " - Ignoring message.");
+                        return; // Do not show notification or add message
+                    }
 
+                    String contactName = getContactName(context, sender);
                     showNotification(context, contactName, messageBody.toString());
                     addReceivedMessageToList(contactName, messageBody.toString(), context);
 
@@ -61,12 +71,24 @@ public class SmsListener extends BroadcastReceiver {
         }
     }
 
+    // Check if sender is in the blocked list
+    private boolean isBlockedUser(Context context, String sender) {
+        SharedPreferences preferences = context.getSharedPreferences("BlockedContacts", Context.MODE_PRIVATE);
+        String blockedContactsJson = preferences.getString("blockedContacts", "[]");
+        List<SmsModel> blockedList = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>() {}.getType());
+
+        for (SmsModel blockedUser : blockedList) {
+            if (blockedUser.getSender().equals(sender)) {
+                return true; // Sender is blocked
+            }
+        }
+        return false; // Sender is not blocked
+    }
+
     private void showNotification(Context context, String sender, String messageBody) {
-        // Create NotificationManager
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // Create a notification channel (required for Android 8.0 and above)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
@@ -77,15 +99,13 @@ public class SmsListener extends BroadcastReceiver {
             notificationManager.createNotificationChannel(channel);
         }
 
-        // Create an intent for launching the app when the notification is clicked
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
-        // Build the notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.sym_action_email) // Replace with your app icon
+                .setSmallIcon(android.R.drawable.sym_action_email)
                 .setContentTitle("New SMS from " + sender)
                 .setContentText(messageBody)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(messageBody))
@@ -93,7 +113,6 @@ public class SmsListener extends BroadcastReceiver {
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
 
-        // Display the notification
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
 
@@ -112,7 +131,7 @@ public class SmsListener extends BroadcastReceiver {
 
     @SuppressLint("Range")
     private String getContactName(Context context, String phoneNumber) {
-        String contactName = phoneNumber; // Default to phone number if no contact found
+        String contactName = phoneNumber;
 
         try {
             Uri uri = Uri.withAppendedPath(

@@ -45,6 +45,30 @@ public class SmsModel  {
         isBlocked = blocked;
     }
 
+    public void setSender(String sender) {
+        this.sender = sender;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public void setDateMillis(long dateMillis) {
+        this.dateMillis = dateMillis;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public String getSender() {
         return sender;
     }
