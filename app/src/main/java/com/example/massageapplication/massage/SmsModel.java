@@ -10,6 +10,7 @@ public class SmsModel  {
 
     private boolean isBlocked;
     private boolean isPinned;
+    private boolean isArchive;
     private int originalPosition;
 
     public SmsModel(String sender, String body, String date, String time, long dateMillis, String status) {
@@ -23,6 +24,14 @@ public class SmsModel  {
 
     public boolean isPinned() {
         return isPinned;
+    }
+
+    public boolean isArchive() {
+        return isArchive;
+    }
+
+    public void setArchive(boolean archive) {
+        isArchive = archive;
     }
 
     public void setPinned(boolean pinned) {
