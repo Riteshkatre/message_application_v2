@@ -72,7 +72,6 @@ public class BlockActivity extends AppCompatActivity {
                 ivUnBlock.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // अनब्लॉक करने से पहले पुष्टि डायलॉग दिखाएं
                         showConfirmationDialog(smsModel);
                     }
                 });
@@ -127,22 +126,13 @@ public class BlockActivity extends AppCompatActivity {
 
 
     private void unblockUser(SmsModel smsModel) {
-        // ब्लॉक किए गए उपयोगकर्ता को लिस्ट से हटा दें
         blockedMessagesList.remove(smsModel);
-
-        // SharedPreferences को अपडेट करें
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-
-        // अपडेट की गई लिस्ट को JSON में बदलें
         String updatedJson = new Gson().toJson(blockedMessagesList);
         editor.putString("blockedContacts", updatedJson);
         editor.apply();
-
-        // RecyclerView को अपडेट करें
         adapter.updateList(blockedMessagesList);
-
-        // यूजर को सूचित करें
         Intent resultIntent = new Intent();
         resultIntent.putExtra("refresh", true);
         setResult(RESULT_OK,resultIntent);
@@ -151,7 +141,6 @@ public class BlockActivity extends AppCompatActivity {
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
-        // अनब्लॉक करने के लिए पुष्टि डायलॉग
         new AlertDialog.Builder(this)
                 .setMessage("Are you sure you want to unblock this user?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {

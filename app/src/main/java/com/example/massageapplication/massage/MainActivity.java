@@ -287,8 +287,8 @@ public class MainActivity extends AppCompatActivity {
             // Retrieve the list of blocked contacts
             ArrayList<SmsModel> blockedContacts = getBlockedContacts();
 
+            List<SmsModel> archivedMessages = getArchivedMessages(); // Read archived messages
             if (cursor != null) {
-                List<SmsModel> archivedMessages = getArchivedMessages(); // Read archived messages
 
                 while (cursor.moveToNext()) {
                     String body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
                     // Filter out archived and blocked messages
                     boolean isArchived = false;
                     for (SmsModel archivedMessage : archivedMessages) {
-                        if (archivedMessage.getSender().equals(newMessage.getSender())) {
+                        if (archivedMessage.getSender().equals(address)) {
                             isArchived = true;
                             break;
                         }
@@ -467,14 +467,10 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> smsAdapter.notifyItemInserted(0));
     }
     private List<SmsModel> getArchivedMessages() {
-        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
-        String json = preferences.getString("ArchivedMessagesList", null);
-        if (json != null) {
-            Gson gson = new Gson();
-            return gson.fromJson(json, new TypeToken<List<SmsModel>>() {
-            }.getType());
-        }
-        return new ArrayList<>();
+        SharedPreferences preferences = getSharedPreferences("ArchivedContacts", MODE_PRIVATE);
+        String archiveContactJson = preferences.getString("archiveContacts","[]");
+        return new Gson().fromJson(archiveContactJson, new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
     }
 
     private ArrayList<SmsModel> getBlockedContacts() {

@@ -1,28 +1,26 @@
 package com.example.massageapplication.contact;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.massageapplication.BlockActivity;
 import com.example.massageapplication.databinding.ActivityContactDetalisBinding;
 import com.example.massageapplication.drawerActivity.Archive;
-import com.example.massageapplication.massage.MainActivity;
 import com.example.massageapplication.massage.SmsModel;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ContactDetailsActivity extends AppCompatActivity {
     private ActivityContactDetalisBinding b;
@@ -45,18 +43,17 @@ public class ContactDetailsActivity extends AppCompatActivity {
 
         checkBlockStatus(number); // Check block status on activity creation
         setupNotificationSwitch();
+        checkArchiveStatus(number);
 
         b.ivArchiveBack.setOnClickListener(v -> finish());
         b.callImage.setOnClickListener(v -> makePhoneCall());
-        b.llDeleteConversation.setOnClickListener(v ->
-                Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show()
-        );
+        b.llDeleteConversation.setOnClickListener(v -> Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show());
         b.layBlock.setOnClickListener(v -> handleBlockAction());
 
         b.llArchiveContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                handleArchiveAction();
             }
         });
     }
@@ -68,19 +65,25 @@ public class ContactDetailsActivity extends AppCompatActivity {
             Toast.makeText(this, "This contact is already blocked.", Toast.LENGTH_SHORT).show();
         }
     }
+    private void handleArchiveAction() {
+        if (b.tvArchive.getText().toString().equals("Archive")) {
+            showArchiveDialog();
+        } else {
+            Toast.makeText(this, "This contact is already Archive.", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void showBlockDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Block Contact")
-                .setMessage("Are you sure you want to block this contact?")
-                .setPositiveButton("Yes", (dialog, which) -> blockContact(number))
-                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .create().show();
+        new AlertDialog.Builder(this).setTitle("Block Contact").setMessage("Are you sure you want to block this contact?").setPositiveButton("Yes", (dialog, which) -> blockContact(number)).setNegativeButton("No", (dialog, which) -> dialog.dismiss()).create().show();
+    }
+    private void showArchiveDialog() {
+        new AlertDialog.Builder(this).setTitle("Archive Contact").setMessage("Are you sure you want to archive this contact?").setPositiveButton("Yes", (dialog, which) -> archiveContact(number)).setNegativeButton("No", (dialog, which) -> dialog.dismiss()).create().show();
     }
 
     private void blockContact(String phoneNumber) {
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>(){}.getType());
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(preferences.getString("blockedContacts", "[]"), new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
 
         // Check if the contact is already blocked
         for (SmsModel contact : blockedContacts) {
@@ -105,11 +108,39 @@ public class ContactDetailsActivity extends AppCompatActivity {
         // Update UI
         checkBlockStatus(phoneNumber);
     }
+    private void archiveContact(String phoneNumber) {
+        SharedPreferences preferences = getSharedPreferences("ArchivedContacts", MODE_PRIVATE);
+        ArrayList<SmsModel> archiveContacts = new Gson().fromJson(preferences.getString("archiveContacts", "[]"), new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
+
+        // Check if the contact is already blocked
+        for (SmsModel contact : archiveContacts) {
+            if (contact.getSender().equals(phoneNumber)) {
+                Toast.makeText(this, "this is a already Archive", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        SmsModel archiveMessage = new SmsModel(phoneNumber, "Archive", "", "", System.currentTimeMillis(), "Archive");
+        archiveMessage.setArchive(true);
+        archiveContacts.add(archiveMessage);
+        preferences.edit().putString("archiveContacts", new Gson().toJson(archiveContacts)).apply();
+
+        Toast.makeText(this, "Contact has been archive.", Toast.LENGTH_SHORT).show();
+
+        // Navigate to BlockActivity
+        Intent intent = new Intent(ContactDetailsActivity.this, Archive.class);
+        startActivity(intent);
+
+        // Update UI
+        checkArchiveStatus(phoneNumber);
+    }
 
     private void checkBlockStatus(String phoneNumber) {
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
         String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
 
         for (SmsModel contact : blockedContacts) {
             if (contact.getSender().equals(phoneNumber)) {
@@ -119,9 +150,31 @@ public class ContactDetailsActivity extends AppCompatActivity {
         }
         b.tvBlock.setText("Block");
     }
+    private void checkArchiveStatus(String phoneNumber) {
+        SharedPreferences preferences = getSharedPreferences("ArchivedContacts", MODE_PRIVATE);
+        String archiveContactsJson = preferences.getString("archiveContacts", "[]");
 
-    // Other methods (makePhoneCall, setupNotificationSwitch, etc.) remain unchanged
-    // Setup Notification Switch
+        // Log the JSON data for debugging
+        Log.d("ArchiveContactsJson", archiveContactsJson);
+
+        ArrayList<SmsModel> archiveContacts = new ArrayList<>();
+        try {
+            archiveContacts = new Gson().fromJson(archiveContactsJson, new TypeToken<ArrayList<SmsModel>>() {}.getType());
+        } catch (JsonSyntaxException e) {
+            Log.e("JsonSyntaxException", "Invalid JSON format: " + e.getMessage());
+            // Handle the error, e.g., by clearing the invalid data
+            preferences.edit().remove("archiveContacts").apply();
+        }
+
+        for (SmsModel contact : archiveContacts) {
+            if (contact.getSender().equals(phoneNumber)) {
+                b.tvArchive.setText("UnArchive");
+                return;
+            }
+        }
+        b.tvArchive.setText("Archive"); // Fix: Set text to "Archive" if not found
+    }
+
     private void setupNotificationSwitch() {
         boolean isEnabled = isNotificationEnabled(number);
         b.notificationSwitch.setChecked(isEnabled);

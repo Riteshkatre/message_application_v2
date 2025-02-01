@@ -1,9 +1,11 @@
 package com.example.massageapplication.drawerActivity;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,6 +22,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.massageapplication.BlockActivity;
 import com.example.massageapplication.R;
 import com.example.massageapplication.massage.MessageActivity;
 import com.example.massageapplication.massage.SmsModel;
@@ -27,9 +30,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Archive extends AppCompatActivity {
+    private final Map<String, String> contactCache = new HashMap<>();
     private RecyclerView recyclerView;
     private ArchiveAdapter pinnedMessagesAdapter;
     private ActivityResultLauncher<Intent> sendSmsLauncher;
@@ -65,7 +70,7 @@ public class Archive extends AppCompatActivity {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        pinnedMessages = getArchivedMessages();
+        pinnedMessages = loadArchivedMessages();
         pinnedMessagesAdapter = new ArchiveAdapter(pinnedMessages);
         recyclerView.setAdapter(pinnedMessagesAdapter);
 
@@ -95,7 +100,7 @@ public class Archive extends AppCompatActivity {
     private void setupActivityLauncher() {
         sendSmsLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == RESULT_OK) {
-                getArchivedMessages(); // Refresh data
+                loadArchivedMessages(); // Refresh data
                 checkEmptyState(); // Check if empty
             }
         });
@@ -108,61 +113,61 @@ public class Archive extends AppCompatActivity {
         sendSmsLauncher.launch(intent);
     }
 
-    private ArrayList<SmsModel> getArchivedMessages() {
-        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
-        String json = preferences.getString("ArchivedMessagesList", null);
-        Log.e("selectedMessagesList", json != null ? json : "No archived messages");
 
-        if (json != null) {
-            return new Gson().fromJson(json, new TypeToken<List<SmsModel>>() {}.getType());
+    private ArrayList<SmsModel> loadArchivedMessages() {
+        SharedPreferences preferences = getSharedPreferences("ArchivedContacts", MODE_PRIVATE);
+        String archiveMessagesJson = preferences.getString("archiveContacts", "[]");
+        ArrayList<SmsModel> allMessages = new Gson().fromJson(archiveMessagesJson, new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
+
+        ArrayList<SmsModel> archiveMessages = new ArrayList<>();
+        for (SmsModel message : allMessages) {
+            if (message.isArchive()) { // Sirf archived messages ko load karen
+                String contactName = getContactName(message.getSender()); // Get contact name
+                message.setSender(contactName); // Update sender with contact name
+                archiveMessages.add(message);
+            }
         }
-        return new ArrayList<>();
+        return archiveMessages;
+    }
+
+    private String getContactName(String phoneNumber) {
+        if (contactCache.containsKey(phoneNumber)) {
+            return contactCache.get(phoneNumber);
+        }
+        ContentResolver contentResolver = getContentResolver();
+        Uri uri = Uri.withAppendedPath(android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
+        Cursor cursor = contentResolver.query(uri, new String[]{android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME}, null, null, null);
+        String contactName = phoneNumber;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                contactName = cursor.getString(cursor.getColumnIndexOrThrow(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME));
+            }
+            cursor.close();
+        }
+        contactCache.put(phoneNumber, contactName);
+        return contactName;
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
-        new AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to unarchive this user?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    unarchiveUser(smsModel);
-                    ivUnArchive.setVisibility(View.GONE);
-                })
-                .setNegativeButton("No", null)
-                .create()
-                .show();
+        new AlertDialog.Builder(this).setMessage("Are you sure you want to unarchive this user?").setPositiveButton("Yes", (dialog, which) -> {
+            unarchiveUser(smsModel);
+            ivUnArchive.setVisibility(View.GONE);
+        }).setNegativeButton("No", null).create().show();
     }
 
     private void unarchiveUser(SmsModel smsModel) {
-        // Remove from archive list
+        smsModel.setArchive(false);
         pinnedMessages.remove(smsModel);
-
-        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences("ArchivedContacts", MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
-
         String updatedJson = new Gson().toJson(pinnedMessages);
-        editor.putString("ArchivedMessagesList", updatedJson);
+        editor.putString("archiveContacts", updatedJson);
         editor.apply();
-
-        SharedPreferences mainPreferences = getSharedPreferences("MainMessages", MODE_PRIVATE);
-        String mainJson = mainPreferences.getString("MainMessagesList", null);
-        ArrayList<SmsModel> mainMessages = new ArrayList<>();
-
-        if (mainJson != null) {
-            mainMessages = new Gson().fromJson(mainJson, new TypeToken<List<SmsModel>>() {}.getType());
-        }
-        mainMessages.add(smsModel);
-
-        // Save the updated main message list
-        SharedPreferences.Editor mainEditor = mainPreferences.edit();
-        mainEditor.putString("MainMessagesList", new Gson().toJson(mainMessages));
-        mainEditor.apply();
-
         pinnedMessagesAdapter.updateList(pinnedMessages);
-        checkEmptyState(); // Check if empty after unarchiving
-
         Intent resultIntent = new Intent();
         resultIntent.putExtra("refresh", true);
-        setResult(RESULT_OK, resultIntent);
-
+        setResult(RESULT_OK,resultIntent);
         Toast.makeText(Archive.this, smsModel.getSender() + " has been unarchived.", Toast.LENGTH_SHORT).show();
         finish();
     }
@@ -176,4 +181,5 @@ public class Archive extends AppCompatActivity {
             recyclerView.setVisibility(View.VISIBLE);
         }
     }
+
 }
