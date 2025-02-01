@@ -51,10 +51,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE = 100;
@@ -67,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     private SmsListener smsListener;
     private BroadcastReceiver newSmsReceiver;
-
 
 
     @SuppressLint({"WrongViewCast",})
@@ -88,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
         navDrawerClickS();
         b.messagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        smsAdapter = new SmsAdapter(smsList);
+        smsAdapter = new SmsAdapter(smsList,this);
         b.messagesRecyclerView.setAdapter(smsAdapter);
         SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         boolean isFirstTime = preferences.getBoolean("isFirstTime", true);
@@ -121,18 +118,15 @@ public class MainActivity extends AppCompatActivity {
                 b.llOne.setVisibility(View.GONE);
 
                 b.layArchive.icPin.setOnClickListener(view -> {
-                    List<SmsModel> selectedMessagesList = smsAdapter.getSelectedItems();
-                    if (selectedMessagesList.isEmpty()) {
-                        Toast.makeText(MainActivity.this, "No messages selected for archive.", Toast.LENGTH_SHORT).show();
-                        return;
+                    if (smsAdapter.getSelectedItemCount() > 0) {
+                        smsAdapter.pinSelectedItems();
+                        smsAdapter.sortList();
+                        smsAdapter.clearSelection();
+                        b.mainArchiveLayout.setVisibility(View.GONE);
+                        b.llOne.setVisibility(View.VISIBLE);
+                    } else {
+                        Toast.makeText(MainActivity.this, "No items selected", Toast.LENGTH_SHORT).show();
                     }
-                    archiveMessages(selectedMessagesList);
-                    smsAdapter.clearSelection();
-                    smsAdapter.notifyDataSetChanged();
-                    b.mainArchiveLayout.setVisibility(View.GONE);
-                    b.llOne.setVisibility(View.VISIBLE);
-                    Intent intent = new Intent(MainActivity.this, Archive.class);
-                    sendSmsLauncher.launch(intent);
                 });
             }
 
@@ -335,7 +329,20 @@ public class MainActivity extends AppCompatActivity {
             }
 
             tempList.addAll(uniqueMessages.values());
-            Collections.sort(tempList, (m1, m2) -> Long.compare(m2.getDateMillis(), m1.getDateMillis()));
+
+            // Load pinned status
+            smsAdapter.loadPinnedStatus(tempList);
+
+            // Sort the list after loading pinned status
+            Collections.sort(tempList, (m1, m2) -> {
+                if (m1.isPinned() && !m2.isPinned()) {
+                    return -1; // m1 (pinned) comes first
+                } else if (!m1.isPinned() && m2.isPinned()) {
+                    return 1; // m2 (pinned) comes first
+                } else {
+                    return Long.compare(m2.getDateMillis(), m1.getDateMillis()); // Sort by date
+                }
+            });
 
             DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new SmsDiffCallback(smsList, tempList));
 
@@ -344,6 +351,7 @@ public class MainActivity extends AppCompatActivity {
                 smsList.addAll(tempList);
             }
 
+            // Update UI on the main thread
             new Handler(Looper.getMainLooper()).post(() -> {
                 b.messagesRecyclerView.setVisibility(View.VISIBLE);
                 b.idPBLoading.setVisibility(View.GONE);
@@ -458,38 +466,6 @@ public class MainActivity extends AppCompatActivity {
         }
         runOnUiThread(() -> smsAdapter.notifyItemInserted(0));
     }
-
-    private void archiveMessages(List<SmsModel> messagesToArchive) {
-        SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-        List<SmsModel> existingArchivedMessages = getArchivedMessages();
-        boolean isNewArchive = false;
-        for (SmsModel newMessage : messagesToArchive) {
-            boolean isSenderAlreadyArchived = false;
-            for (SmsModel archivedMessage : existingArchivedMessages) {
-                if (archivedMessage.getSender().equals(newMessage.getSender())) {
-                    isSenderAlreadyArchived = true;
-                    break;
-                }
-            }
-
-            if (isSenderAlreadyArchived) {
-                Toast.makeText(MainActivity.this, "Message from " + newMessage.getSender() + " is already archived.", Toast.LENGTH_SHORT).show();
-            } else {
-                existingArchivedMessages.add(newMessage);
-                isNewArchive = true;
-                loadMessages();
-            }
-        }
-        if (isNewArchive) {
-            Gson gson = new Gson();
-            String json = gson.toJson(existingArchivedMessages);
-            editor.putString("ArchivedMessagesList", json);
-            editor.apply();
-            Toast.makeText(MainActivity.this, "Messages archived successfully.", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private List<SmsModel> getArchivedMessages() {
         SharedPreferences preferences = getSharedPreferences("ArchivedMessages", MODE_PRIVATE);
         String json = preferences.getString("ArchivedMessagesList", null);
@@ -500,9 +476,11 @@ public class MainActivity extends AppCompatActivity {
         }
         return new ArrayList<>();
     }
+
     private ArrayList<SmsModel> getBlockedContacts() {
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
         String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        return new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+        return new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
     }
 }

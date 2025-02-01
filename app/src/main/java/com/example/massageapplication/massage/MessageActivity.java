@@ -2,8 +2,10 @@ package com.example.massageapplication.massage;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -29,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.massageapplication.R;
 import com.example.massageapplication.ScheduleDialog;
+import com.example.massageapplication.ScheduledSMSReceiver;
 import com.example.massageapplication.contact.ContactDetailsActivity;
 import com.example.massageapplication.databinding.ActivityMessageBinding;
 import com.google.gson.Gson;
@@ -38,17 +41,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 
 public class MessageActivity extends AppCompatActivity {
+    private final ArrayList<SmsModel> messagesList = new ArrayList<>();
+    private final ArrayList<String> blockedNumbers = new ArrayList<>();
     ActivityMessageBinding b;
     private MessageAdapter messageAdapter;
-    private final ArrayList<SmsModel> messagesList = new ArrayList<>();
     private String senderAddress;
     private String senderName;
     private String phoneNumber;
-    private final ArrayList<String> blockedNumbers = new ArrayList<>();
-
-
     private final ContentObserver smsObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
         @Override
         public void onChange(boolean selfChange) {
@@ -65,8 +67,25 @@ public class MessageActivity extends AppCompatActivity {
         setContentView(b.getRoot());
 
         b.imgCalender.setOnClickListener(v -> {
-            ScheduleDialog scheduleDialog = new ScheduleDialog();
+            ScheduleDialog scheduleDialog = new ScheduleDialog(phoneNumber);
             scheduleDialog.show(getSupportFragmentManager(), "ScheduleDialog");
+            scheduleDialog.setOnItemClickListener(new ScheduleDialog.OnItemClickListener() {
+                @Override
+                public void onSubmitClick(String dateTime, String message) {
+                    try {
+                        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                        Date date = format.parse(dateTime);
+                        if (date != null) {
+                            long triggerTime = date.getTime();
+                            saveScheduledSMS(phoneNumber, message, triggerTime); // Save data
+                            setAlarmForScheduledSMS(phoneNumber, message, triggerTime);
+                            Toast.makeText(MessageActivity.this, "SMS scheduled successfully", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Toast.makeText(MessageActivity.this, "Invalid date/time format", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
 
 
@@ -196,7 +215,8 @@ public class MessageActivity extends AppCompatActivity {
             // ब्लॉक किए गए नंबर की लिस्ट को पढ़ें
             SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
             String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-            ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+            ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>() {
+            }.getType());
 
             // चेक करें कि क्या यह नंबर ब्लॉक किया गया है
             boolean isBlocked = false;
@@ -212,13 +232,7 @@ public class MessageActivity extends AppCompatActivity {
                 return; // अगर नंबर ब्लॉक किया गया है, तो मैसेज लोड न करें
             }
 
-            Cursor cursor = cr.query(
-                    Uri.parse("content://sms/"),
-                    null,
-                    phoneNumber != null ? "address = ?" : "address LIKE ?",
-                    phoneNumber != null ? new String[]{phoneNumber} : new String[]{"%" + senderAddress + "%"},
-                    "date ASC"
-            );
+            Cursor cursor = cr.query(Uri.parse("content://sms/"), null, phoneNumber != null ? "address = ?" : "address LIKE ?", phoneNumber != null ? new String[]{phoneNumber} : new String[]{"%" + senderAddress + "%"}, "date ASC");
 
             if (cursor != null) {
                 ArrayList<SmsModel> newMessagesList = new ArrayList<>();
@@ -233,14 +247,7 @@ public class MessageActivity extends AppCompatActivity {
                     SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
                     String time = timeFormat.format(date);
 
-                    newMessagesList.add(new SmsModel(
-                            type.equals("received") ? senderName : "You",
-                            body,
-                            date.toString(),
-                            time,
-                            dateMillis,
-                            type
-                    ));
+                    newMessagesList.add(new SmsModel(type.equals("received") ? senderName : "You", body, date.toString(), time, dateMillis, type));
                 }
                 cursor.close();
 
@@ -255,17 +262,12 @@ public class MessageActivity extends AppCompatActivity {
             }
         }).start();
     }
+
     @SuppressLint("Range")
     private String getPhoneNumberFromContacts(String contactName) {
         String phoneNumber = null;
         ContentResolver resolver = getContentResolver();
-        Cursor cursor = resolver.query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
-                ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?",
-                new String[]{"%" + contactName + "%"},
-                null
-        );
+        Cursor cursor = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER}, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ?", new String[]{"%" + contactName + "%"}, null);
 
         if (cursor != null) {
             if (cursor.moveToFirst()) {
@@ -289,7 +291,8 @@ public class MessageActivity extends AppCompatActivity {
         // ब्लॉक किए गए नंबर को चेक करें
         SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
         String blockedContactsJson = preferences.getString("blockedContacts", "[]");
-        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>(){}.getType());
+        ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>() {
+        }.getType());
 
         boolean isBlocked = false;
         for (SmsModel blockedContact : blockedContacts) {
@@ -312,14 +315,7 @@ public class MessageActivity extends AppCompatActivity {
             String date = currentDate.toString();
             String time = date.substring(11, 19);
 
-            SmsModel newMessage = new SmsModel(
-                    "You",
-                    messageText,
-                    date,
-                    time,
-                    System.currentTimeMillis(),
-                    "sent"
-            );
+            SmsModel newMessage = new SmsModel("You", messageText, date, time, System.currentTimeMillis(), "sent");
 
             messagesList.add(newMessage);
             messageAdapter.notifyItemInserted(messagesList.size() - 1);
@@ -335,6 +331,7 @@ public class MessageActivity extends AppCompatActivity {
             Toast.makeText(this, "मैसेज भेजने में विफलता: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+
     private int getColorForInitial(String initial) {
         int hash = Math.abs(initial.hashCode());
         int[] colors = {Color.parseColor("#2b73ec")};
@@ -344,11 +341,7 @@ public class MessageActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        getContentResolver().registerContentObserver(
-                Uri.parse("content://sms"),
-                true,
-                smsObserver
-        );
+        getContentResolver().registerContentObserver(Uri.parse("content://sms"), true, smsObserver);
     }
 
     @Override
@@ -364,4 +357,52 @@ public class MessageActivity extends AppCompatActivity {
         setResult(RESULT_OK, resultIntent);
         super.onBackPressed();
     }
+    private void resetScheduledSMSAlarms() {
+        SharedPreferences preferences = getSharedPreferences("ScheduledSMS", MODE_PRIVATE);
+        Map<String, ?> allEntries = preferences.getAll();
+
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            String key = entry.getKey();
+            String value = (String) entry.getValue();
+
+            String[] parts = value.split("\\|");
+            String phoneNumber = parts[0];
+            String message = parts[1];
+            long triggerTime = Long.parseLong(key.replace("scheduled_sms_", ""));
+
+            if (triggerTime > System.currentTimeMillis()) {
+                setAlarmForScheduledSMS(phoneNumber, message, triggerTime);
+            } else {
+                // Remove expired alarms
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.remove(key);
+                editor.apply();
+            }
+        }
+    }
+
+    private void setAlarmForScheduledSMS(String phoneNumber, String message, long triggerTime) {
+        Intent intent = new Intent(this, ScheduledSMSReceiver.class);
+        intent.putExtra("phoneNumber", phoneNumber);
+        intent.putExtra("message", message);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
+        }
+    }
+
+    private void saveScheduledSMS(String phoneNumber, String message, long triggerTime) {
+        SharedPreferences preferences = getSharedPreferences("ScheduledSMS", MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+
+        String key = "scheduled_sms_" + triggerTime;
+        String value = phoneNumber + "|" + message;
+
+        editor.putString(key, value);
+        editor.apply();
+    }
+
 }
