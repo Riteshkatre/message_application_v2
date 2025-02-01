@@ -150,10 +150,10 @@ public class Archive extends AppCompatActivity {
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
-        new AlertDialog.Builder(this).setMessage("Are you sure you want to unarchive this user?").setPositiveButton("Yes", (dialog, which) -> {
+        new AlertDialog.Builder(this).setMessage(R.string.are_you_sure_you_want_to_unarchive_this_user).setPositiveButton(R.string.yes, (dialog, which) -> {
             unarchiveUser(smsModel);
             ivUnArchive.setVisibility(View.GONE);
-        }).setNegativeButton("No", null).create().show();
+        }).setNegativeButton(R.string.no, null).create().show();
     }
 
     private void unarchiveUser(SmsModel smsModel) {
@@ -168,7 +168,7 @@ public class Archive extends AppCompatActivity {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("refresh", true);
         setResult(RESULT_OK,resultIntent);
-        Toast.makeText(Archive.this, smsModel.getSender() + " has been unarchived.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(Archive.this, smsModel.getSender() + R.string.has_been_unarchived, Toast.LENGTH_SHORT).show();
         finish();
     }
 

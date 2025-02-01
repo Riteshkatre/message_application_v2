@@ -69,12 +69,12 @@ public class LanguageSelectionActivity extends AppCompatActivity implements Lang
         languages.add(new LanguageModel("en", "English", "(English)", R.drawable.english_flag));
         languages.add(new LanguageModel("hi", "Hindi", "(हिंदी)", R.drawable.hindi_flag));
         languages.add(new LanguageModel("gu", "Gujarati", "(ગુજરાતી)", R.drawable.hindi_flag));
-        languages.add(new LanguageModel("", "Chinese", "(中文)", R.drawable.chinese_flag));
-        languages.add(new LanguageModel("", "Spanish", "(Española)", R.drawable.spanish_flag));
-        languages.add(new LanguageModel("", "Arabic", "(العربية)", R.drawable.arabic_flag));
-        languages.add(new LanguageModel("", "German", "(Deutsch)", R.drawable.german_flag));
-        languages.add(new LanguageModel("", "French", "(Français)", R.drawable.french_flag));
-        languages.add(new LanguageModel("", "Portuguese", "(Português)", R.drawable.portegues_flag));
+        languages.add(new LanguageModel("zh", "Chinese", "(中文)", R.drawable.chinese_flag));
+        languages.add(new LanguageModel("es", "Spanish", "(Española)", R.drawable.spanish_flag));
+        languages.add(new LanguageModel("ar", "Arabic", "(العربية)", R.drawable.arabic_flag));
+        languages.add(new LanguageModel("de", "German", "(Deutsch)", R.drawable.german_flag));
+        languages.add(new LanguageModel("fr", "French", "(Français)", R.drawable.french_flag));
+        languages.add(new LanguageModel("pt", "Portuguese", "(Português)", R.drawable.portegues_flag));
 
         adapter = new LanguageAdapter(this, languages, this);
         recyclerView.setAdapter(adapter);
@@ -93,7 +93,7 @@ public class LanguageSelectionActivity extends AppCompatActivity implements Lang
                 startActivity(intent);
                 finish();
             } else {
-                Toast.makeText(LanguageSelectionActivity.this, "Please Select Language First", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LanguageSelectionActivity.this, R.string.please_select_language_first, Toast.LENGTH_SHORT).show();
             }
         });
 

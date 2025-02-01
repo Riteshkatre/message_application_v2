@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Massage Application</string>
+    <string name="message">信息</string>
+    <string name="message_app_for_instant_and_secure_communication">你的世界，离一个信息很近</string>
+    <string name="archive">归档</string>
+    <string name="block_message">阻止信息</string>
+    <string name="schedule_message">安排信息</string>
+    <string name="language">语言</string>
+    <string name="share_app">分享应用</string>
+    <string name="rate_us">给我们评分</string>
+    <string name="privacy">隐私</string>
+    <string name="done" translatable="false">完成</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment" translatable="false">你好，空白片段</string>
+
+    <string name="selected">已选择</string>
+    <string name="no_items_selected">没有选择任何项目</string>
+    <string name="permissions_are_required_to_access_messages_and_contacts">需要权限才能访问信息和联系人</string>
+    <string name="failed">失败</string>
+    <string name="write_a_massages">写信息</string>
+    <string name="no_data_found">没有找到数据</string>
+    <string name="search">搜索</string>
+    <string name="sms_scheduled_successfully">短信成功安排</string>
+    <string name="sender_address_is_missing">发件人地址丢失</string>
+    <string name="please_enter_a_message">请输入信息</string>
+    <string name="schedule">安排</string>
+    <string name="more_details">更多详情</string>
+    <string name="this_number_is_blocked_the_message_will_not_be_shown">此号码已被阻止，信息将不显示</string>
+    <string name="invalid_phone_number">无效的电话号码</string>
+    <string name="you_have_already_blocked_this_number_messages_cannot_be_sent">您已阻止此号码，无法发送信息</string>
+    <string name="message_sent_successfully">信息发送成功</string>
+    <string name="failed_to_send_message">发送信息失败</string>
+    <string name="you_cannot_select_more_than_3_items">您不能选择超过3个项目</string>
+    <string name="you_cannot_pin_more_than_3_senders">您不能固定超过3个发件人</string>
+    <string name="has_been_unblocked">已解除阻止</string>
+    <string name="are_you_sure_you_want_to_unblock_this_user">您确定要解除对该用户的阻止吗？</string>
+    <string name="yes">是的</string>
+    <string name="no">不是</string>
+    <string name="please_select_language_first">请先选择语言</string>
+    <string name="are_you_sure_you_want_to_unarchive_this_user">您确定要取消归档该用户吗？</string>
+    <string name="has_been_unarchived">已取消归档</string>
+    <string name="block">阻止</string>
+    <string name="this_contact_is_already_blocked">此联系人已被阻止</string>
+    <string name="this_contact_is_already_archive">此联系人已归档</string>
+    <string name="block_contact">阻止联系人</string>
+    <string name="are_you_sure_you_want_to_block_this_contact">您确定要阻止此联系人吗？</string>
+    <string name="archive_contact">归档联系人</string>
+    <string name="are_you_sure_you_want_to_archive_this_contact">您确定要归档此联系人吗？</string>
+    <string name="this_number_is_already_blocked">此号码已被阻止</string>
+    <string name="contact_has_been_blocked">联系人已被阻止</string>
+    <string name="this_is_a_already_archive">这是一个已经归档的联系人</string>
+    <string name="contact_has_been_archive">联系人已被归档</string>
+    <string name="unblock">解除阻止</string>
+    <string name="unarchive">取消归档</string>
+    <string name="permission_denied">权限被拒绝</string>
+    <string name="enter_numbers">输入号码</string>
+    <string name="search_contacts">搜索联系人</string>
+</resources>

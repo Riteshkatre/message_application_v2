@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Massage Application</string>
+    <string name="message">Mensagem</string>
+    <string name="message_app_for_instant_and_secure_communication">Seu mundo, a um mensagem de distância</string>
+    <string name="archive">Arquivar</string>
+    <string name="block_message">Bloquear mensagem</string>
+    <string name="schedule_message">Agendar mensagem</string>
+    <string name="language">Idioma</string>
+    <string name="share_app">Compartilhar o aplicativo</string>
+    <string name="rate_us">Avalie-nos</string>
+    <string name="privacy">Privacidade</string>
+    <string name="done" translatable="false">Feito</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment" translatable="false">Olá fragmento em branco</string>
+
+    <string name="selected">Selecionado</string>
+    <string name="no_items_selected">Nenhum item selecionado</string>
+    <string name="permissions_are_required_to_access_messages_and_contacts">Permissões são necessárias para acessar mensagens e contatos.</string>
+    <string name="failed">Falhou!</string>
+    <string name="write_a_massages">Escrever uma mensagem</string>
+    <string name="no_data_found">Nenhum dado encontrado</string>
+    <string name="search">Buscar</string>
+    <string name="sms_scheduled_successfully">SMS agendado com sucesso</string>
+    <string name="sender_address_is_missing">Endereço do remetente ausente</string>
+    <string name="please_enter_a_message">Por favor, digite uma mensagem</string>
+    <string name="schedule">Agendar</string>
+    <string name="more_details">Mais detalhes</string>
+    <string name="this_number_is_blocked_the_message_will_not_be_shown">Este número está bloqueado, a mensagem não será exibida.</string>
+    <string name="invalid_phone_number">Número de telefone inválido</string>
+    <string name="you_have_already_blocked_this_number_messages_cannot_be_sent">Você já bloqueou este número, as mensagens não podem ser enviadas.</string>
+    <string name="message_sent_successfully">Mensagem enviada com sucesso</string>
+    <string name="failed_to_send_message">Falha ao enviar mensagem</string>
+    <string name="you_cannot_select_more_than_3_items">Você não pode selecionar mais de 3 itens</string>
+    <string name="you_cannot_pin_more_than_3_senders">Você não pode fixar mais de 3 remetentes</string>
+    <string name="has_been_unblocked"> foi desbloqueado</string>
+    <string name="are_you_sure_you_want_to_unblock_this_user">Tem certeza de que deseja desbloquear este usuário?</string>
+    <string name="yes">Sim</string>
+    <string name="no">Não</string>
+    <string name="please_select_language_first">Por favor, selecione o idioma primeiro</string>
+    <string name="are_you_sure_you_want_to_unarchive_this_user">Tem certeza de que deseja desarquivar este usuário?</string>
+    <string name="has_been_unarchived"> foi desarquivado</string>
+    <string name="block">Bloquear</string>
+    <string name="this_contact_is_already_blocked">Este contato já está bloqueado</string>
+    <string name="this_contact_is_already_archive">Este contato já está arquivado</string>
+    <string name="block_contact">Bloquear contato</string>
+    <string name="are_you_sure_you_want_to_block_this_contact">Tem certeza de que deseja bloquear este contato?</string>
+    <string name="archive_contact">Arquivar contato</string>
+    <string name="are_you_sure_you_want_to_archive_this_contact">Tem certeza de que deseja arquivar este contato?</string>
+    <string name="this_number_is_already_blocked">Este número já está bloqueado</string>
+    <string name="contact_has_been_blocked">Contato bloqueado</string>
+    <string name="this_is_a_already_archive">Este já está arquivado</string>
+    <string name="contact_has_been_archive">Contato arquivado</string>
+    <string name="unblock">Desbloquear</string>
+    <string name="unarchive">Desarquivar</string>
+    <string name="permission_denied">Permissão negada</string>
+    <string name="enter_numbers">Digite números</string>
+    <string name="search_contacts">Buscar contatos</string>
+</resources>

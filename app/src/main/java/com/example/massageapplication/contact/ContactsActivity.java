@@ -1,5 +1,7 @@
 package com.example.massageapplication.contact;
 
+import static com.example.massageapplication.R.string.permission_denied;
+
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -89,7 +91,7 @@ public class ContactsActivity extends AppCompatActivity {
                     if (isGranted) {
                         loadContacts();
                     } else {
-                        Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, permission_denied, Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -132,7 +134,7 @@ public class ContactsActivity extends AppCompatActivity {
     private void switchToDialPadMode() {
         ivKeyboard.setImageResource(R.drawable.dialpad);
         etContactSearch.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
-        etContactSearch.setHint("Enter numbers");
+        etContactSearch.setHint(R.string.enter_numbers);
         etContactSearch.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10)});
         etContactSearch.setText("");
     }
@@ -140,7 +142,7 @@ public class ContactsActivity extends AppCompatActivity {
     private void switchToTextMode() {
         ivKeyboard.setImageResource(R.drawable.keyboard);
         etContactSearch.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
-        etContactSearch.setHint("Search contacts");
+        etContactSearch.setHint(R.string.search_contacts);
         etContactSearch.setFilters(new InputFilter[]{});
         etContactSearch.setText("");
     }

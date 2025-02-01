@@ -12,4 +12,47 @@
     <string name="done" translatable="false">Done</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
+
+    <string name="selected">Selected</string>
+    <string name="no_items_selected">No items selected</string>
+    <string name="permissions_are_required_to_access_messages_and_contacts">Permissions are required to access messages and contacts.</string>
+    <string name="failed">Failed!</string>
+    <string name="write_a_massages">write a massages...</string>
+    <string name="no_data_found">No Data Found</string>
+    <string name="search">Search...</string>
+    <string name="sms_scheduled_successfully">SMS scheduled successfully</string>
+    <string name="sender_address_is_missing">Sender address is missing</string>
+    <string name="please_enter_a_message">Please enter a message</string>
+    <string name="schedule">Schedule</string>
+    <string name="more_details">More Details</string>
+    <string name="this_number_is_blocked_the_message_will_not_be_shown">This number is blocked, the message will not be shown.</string>
+    <string name="invalid_phone_number">Invalid phone number.</string>
+    <string name="you_have_already_blocked_this_number_messages_cannot_be_sent">You have already blocked this number, messages cannot be sent.</string>
+    <string name="message_sent_successfully">Message sent successfully.</string>
+    <string name="failed_to_send_message">Failed to send message:</string>
+    <string name="you_cannot_select_more_than_3_items">You cannot select more than 3 items</string>
+    <string name="you_cannot_pin_more_than_3_senders">You cannot pin more than 3 senders</string>
+    <string name="has_been_unblocked">" has been unblocked."</string>
+    <string name="are_you_sure_you_want_to_unblock_this_user">Are you sure you want to unblock this user?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="please_select_language_first">Please Select Language First</string>
+    <string name="are_you_sure_you_want_to_unarchive_this_user">Are you sure you want to unarchive this user?</string>
+    <string name="has_been_unarchived">" has been unarchived."</string>
+    <string name="block">Block</string>
+    <string name="this_contact_is_already_blocked">This contact is already blocked.</string>
+    <string name="this_contact_is_already_archive">This contact is already Archive.</string>
+    <string name="block_contact">Block Contact</string>
+    <string name="are_you_sure_you_want_to_block_this_contact">Are you sure you want to block this contact?</string>
+    <string name="archive_contact">Archive Contact</string>
+    <string name="are_you_sure_you_want_to_archive_this_contact">Are you sure you want to archive this contact?</string>
+    <string name="this_number_is_already_blocked">This number is already blocked.</string>
+    <string name="contact_has_been_blocked">Contact has been blocked.</string>
+    <string name="this_is_a_already_archive">this is a already Archive</string>
+    <string name="contact_has_been_archive">Contact has been archive.</string>
+    <string name="unblock">Unblock</string>
+    <string name="unarchive">UnArchive</string>
+    <string name="permission_denied">Permission denied</string>
+    <string name="enter_numbers">Enter numbers</string>
+    <string name="search_contacts">Search contacts</string>
 </resources>

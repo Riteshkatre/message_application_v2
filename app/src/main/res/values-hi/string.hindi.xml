@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name" translatable="false">Massage Application</string>
     <string name="message">संदेश</string>
-    <string name="message_app_for_instant_and_secure_communication">त्वरित और सुरक्षित संचार के लिए संदेश ऐप।</string>
+    <string name="message_app_for_instant_and_secure_communication">आपकी दुनिया, एक संदेश दूर</string>
     <string name="archive">संग्रह</string>
     <string name="block_message">संदेश अवरोधित करें</string>
     <string name="schedule_message">संदेश अनुसूची</string>
@@ -9,4 +10,50 @@
     <string name="share_app">ऐप साझा करें</string>
     <string name="rate_us">हमें रेट करें</string>
     <string name="privacy">गोपनीयता</string>
+    <string name="done" translatable="false">Done</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
+
+    <string name="selected">चयनित</string>
+    <string name="no_items_selected">कोई आइटम चयनित नहीं</string>
+    <string name="permissions_are_required_to_access_messages_and_contacts">संदेशों और संपर्कों तक पहुँचने के लिए अनुमतियाँ आवश्यक हैं।</string>
+    <string name="failed">असफल!</string>
+    <string name="write_a_massages">संदेश लिखें</string>
+    <string name="no_data_found">कोई डेटा नहीं मिला</string>
+    <string name="search">खोजें.</string>
+    <string name="sms_scheduled_successfully">एसएमएस सफलतापूर्वक अनुसूचित</string>
+    <string name="sender_address_is_missing">प्रेषक का पता गायब है</string>
+    <string name="please_enter_a_message">कृपया एक संदेश दर्ज करें</string>
+    <string name="schedule">अनुसूची</string>
+    <string name="more_details">अधिक जानकारी</string>
+    <string name="this_number_is_blocked_the_message_will_not_be_shown">यह नंबर अवरुद्ध है, संदेश प्रदर्शित नहीं किया जाएगा।</string>
+    <string name="invalid_phone_number">अमान्य फोन नंबर।</string>
+    <string name="you_have_already_blocked_this_number_messages_cannot_be_sent">आपने पहले ही इस नंबर को अवरुद्ध कर दिया है, संदेश नहीं भेजे जा सकते।</string>
+    <string name="message_sent_successfully">संदेश सफलतापूर्वक भेजा गया।</string>
+    <string name="failed_to_send_message">संदेश भेजने में विफल</string>
+    <string name="you_cannot_select_more_than_3_items">आप 3 से अधिक आइटम का चयन नहीं कर सकते</string>
+    <string name="you_cannot_pin_more_than_3_senders">आप 3 से अधिक प्रेषकों को पिन नहीं कर सकते</string>
+    <string name="has_been_unblocked"> को अनब्लॉक कर दिया गया है।</string>
+    <string name="are_you_sure_you_want_to_unblock_this_user">क्या आप सुनिश्चित हैं कि आप इस उपयोगकर्ता को अनब्लॉक करना चाहते हैं?</string>
+    <string name="yes">हाँ</string>
+    <string name="no">नहीं</string>
+    <string name="please_select_language_first">कृपया पहले भाषा चुनें</string>
+    <string name="are_you_sure_you_want_to_unarchive_this_user">क्या आप सुनिश्चित हैं कि आप इस उपयोगकर्ता को अनआर्काइव करना चाहते हैं?</string>
+    <string name="has_been_unarchived">" को अनआर्काइव कर दिया गया है।"</string>
+    <string name="block">अवरुद्ध करें</string>
+    <string name="this_contact_is_already_blocked">यह संपर्क पहले से ही अवरुद्ध है।</string>
+    <string name="this_contact_is_already_archive">यह संपर्क पहले से ही संग्रहित है।</string>
+    <string name="block_contact">संपर्क अवरुद्ध करें</string>
+    <string name="are_you_sure_you_want_to_block_this_contact">क्या आप सुनिश्चित हैं कि आप इस संपर्क को अवरुद्ध करना चाहते हैं?</string>
+    <string name="archive_contact">संपर्क संग्रह करें</string>
+    <string name="are_you_sure_you_want_to_archive_this_contact">क्या आप सुनिश्चित हैं कि आप इस संपर्क को संग्रह करना चाहते हैं?</string>
+    <string name="this_number_is_already_blocked">यह नंबर पहले से ही अवरुद्ध है।</string>
+    <string name="contact_has_been_blocked">संपर्क अवरुद्ध कर दिया गया है।</string>
+    <string name="this_is_a_already_archive">यह पहले से ही संग्रहित है</string>
+    <string name="contact_has_been_archive">संपर्क संग्रहित कर दिया गया है।</string>
+    <string name="unblock">अनब्लॉक करें</string>
+    <string name="unarchive">अनआर्काइव करें</string>
+    <string name="permission_denied">अनुमति अस्वीकृत</string>
+    <string name="enter_numbers">संख्या दर्ज करें</string>
+    <string name="search_contacts">संपर्क खोजें</string>
 </resources>

@@ -1,5 +1,8 @@
 package com.example.massageapplication.massage;
 
+import static com.example.massageapplication.R.string.you_cannot_pin_more_than_3_senders;
+import static com.example.massageapplication.R.string.you_cannot_select_more_than_3_items;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -199,7 +202,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
 
     public void toggleSelection(int position) {
         if (selectedItems.size() >= 3 && !selectedItems.contains(position)) {
-            Toast.makeText(context, "You cannot select more than 3 items", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, you_cannot_select_more_than_3_items, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -272,7 +275,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
         }
 
         if (getPinnedSendersCount() + newPinnedSenders > 3) {
-            Toast.makeText(context, "You cannot pin more than 3 senders", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, you_cannot_pin_more_than_3_senders, Toast.LENGTH_SHORT).show();
             return;
         }
 

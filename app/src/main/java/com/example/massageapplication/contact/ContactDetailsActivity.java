@@ -1,5 +1,7 @@
 package com.example.massageapplication.contact;
 
+import static com.example.massageapplication.R.string.*;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.massageapplication.BlockActivity;
+import com.example.massageapplication.R;
 import com.example.massageapplication.databinding.ActivityContactDetalisBinding;
 import com.example.massageapplication.drawerActivity.Archive;
 import com.example.massageapplication.massage.SmsModel;
@@ -59,25 +62,25 @@ public class ContactDetailsActivity extends AppCompatActivity {
     }
 
     private void handleBlockAction() {
-        if (b.tvBlock.getText().toString().equals("Block")) {
+        if (b.tvBlock.getText().toString().equals(getString(R.string.block))) {
             showBlockDialog();
         } else {
-            Toast.makeText(this, "This contact is already blocked.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ContactDetailsActivity.this, R.string.this_contact_is_already_blocked, Toast.LENGTH_SHORT).show();
         }
     }
     private void handleArchiveAction() {
-        if (b.tvArchive.getText().toString().equals("Archive")) {
+        if (b.tvArchive.getText().toString().equals(R.string.archive)) {
             showArchiveDialog();
         } else {
-            Toast.makeText(this, "This contact is already Archive.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ContactDetailsActivity.this, R.string.this_contact_is_already_archive, Toast.LENGTH_SHORT).show();
         }
     }
 
     private void showBlockDialog() {
-        new AlertDialog.Builder(this).setTitle("Block Contact").setMessage("Are you sure you want to block this contact?").setPositiveButton("Yes", (dialog, which) -> blockContact(number)).setNegativeButton("No", (dialog, which) -> dialog.dismiss()).create().show();
+        new AlertDialog.Builder(this).setTitle(block_contact).setMessage(are_you_sure_you_want_to_block_this_contact).setPositiveButton(yes, (dialog, which) -> blockContact(number)).setNegativeButton(no, (dialog, which) -> dialog.dismiss()).create().show();
     }
     private void showArchiveDialog() {
-        new AlertDialog.Builder(this).setTitle("Archive Contact").setMessage("Are you sure you want to archive this contact?").setPositiveButton("Yes", (dialog, which) -> archiveContact(number)).setNegativeButton("No", (dialog, which) -> dialog.dismiss()).create().show();
+        new AlertDialog.Builder(this).setTitle(archive_contact).setMessage(are_you_sure_you_want_to_archive_this_contact).setPositiveButton(yes, (dialog, which) -> archiveContact(number)).setNegativeButton(no, (dialog, which) -> dialog.dismiss()).create().show();
     }
 
     private void blockContact(String phoneNumber) {
@@ -88,7 +91,9 @@ public class ContactDetailsActivity extends AppCompatActivity {
         // Check if the contact is already blocked
         for (SmsModel contact : blockedContacts) {
             if (contact.getSender().equals(phoneNumber)) {
-                Toast.makeText(this, "यह नंबर पहले से ब्लॉक है।", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this,
+                        R.string.this_number_is_already_blocked,
+                        Toast.LENGTH_SHORT).show();
                 return;
             }
         }
@@ -99,7 +104,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         blockedContacts.add(blockedMessage);
         preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
 
-        Toast.makeText(this, "Contact has been blocked.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, contact_has_been_blocked, Toast.LENGTH_SHORT).show();
 
         // Navigate to BlockActivity
         Intent intent = new Intent(ContactDetailsActivity.this, BlockActivity.class);
@@ -116,7 +121,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         // Check if the contact is already blocked
         for (SmsModel contact : archiveContacts) {
             if (contact.getSender().equals(phoneNumber)) {
-                Toast.makeText(this, "this is a already Archive", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, this_is_a_already_archive, Toast.LENGTH_SHORT).show();
                 return;
             }
         }
@@ -126,7 +131,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         archiveContacts.add(archiveMessage);
         preferences.edit().putString("archiveContacts", new Gson().toJson(archiveContacts)).apply();
 
-        Toast.makeText(this, "Contact has been archive.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, contact_has_been_archive, Toast.LENGTH_SHORT).show();
 
         // Navigate to BlockActivity
         Intent intent = new Intent(ContactDetailsActivity.this, Archive.class);
@@ -144,11 +149,11 @@ public class ContactDetailsActivity extends AppCompatActivity {
 
         for (SmsModel contact : blockedContacts) {
             if (contact.getSender().equals(phoneNumber)) {
-                b.tvBlock.setText("Unblock");
+                b.tvBlock.setText(R.string.unblock);
                 return;
             }
         }
-        b.tvBlock.setText("Block");
+        b.tvBlock.setText(R.string.block);
     }
     private void checkArchiveStatus(String phoneNumber) {
         SharedPreferences preferences = getSharedPreferences("ArchivedContacts", MODE_PRIVATE);
@@ -168,11 +173,11 @@ public class ContactDetailsActivity extends AppCompatActivity {
 
         for (SmsModel contact : archiveContacts) {
             if (contact.getSender().equals(phoneNumber)) {
-                b.tvArchive.setText("UnArchive");
+                b.tvArchive.setText(R.string.unarchive);
                 return;
             }
         }
-        b.tvArchive.setText("Archive"); // Fix: Set text to "Archive" if not found
+        b.tvArchive.setText(R.string.archive); // Fix: Set text to "Archive" if not found
     }
 
     private void setupNotificationSwitch() {
@@ -199,7 +204,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
     private void makePhoneCall() {
         String phoneNumber = getValidPhoneNumber();
         if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            Toast.makeText(this, "Invalid phone number", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, invalid_phone_number, Toast.LENGTH_SHORT).show();
             return;
         }
 

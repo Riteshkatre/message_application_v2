@@ -1,5 +1,8 @@
 package com.example.massageapplication.massage;
 
+import static com.example.massageapplication.R.string;
+import static com.example.massageapplication.R.string.message_sent_successfully;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
@@ -79,7 +82,7 @@ public class MessageActivity extends AppCompatActivity {
                             long triggerTime = date.getTime();
                             saveScheduledSMS(phoneNumber, message, triggerTime); // Save data
                             setAlarmForScheduledSMS(phoneNumber, message, triggerTime);
-                            Toast.makeText(MessageActivity.this, "SMS scheduled successfully", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MessageActivity.this, R.string.sms_scheduled_successfully, Toast.LENGTH_SHORT).show();
                         }
                     } catch (Exception e) {
                         Toast.makeText(MessageActivity.this, "Invalid date/time format", Toast.LENGTH_SHORT).show();
@@ -122,7 +125,7 @@ public class MessageActivity extends AppCompatActivity {
         if (senderAddress != null && !senderAddress.isEmpty()) {
             loadMessagesFromSender();
         } else {
-            Toast.makeText(this, "Sender address is missing", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MessageActivity.this, R.string.sender_address_is_missing, Toast.LENGTH_SHORT).show();
         }
 
         b.laySend.setOnClickListener(v -> {
@@ -134,7 +137,7 @@ public class MessageActivity extends AppCompatActivity {
                     sendMessage(messageText);
                 }
             } else {
-                Toast.makeText(this, "Please enter a message", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MessageActivity.this, R.string.please_enter_a_message, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -143,18 +146,19 @@ public class MessageActivity extends AppCompatActivity {
             PopupMenu popupMenu = new PopupMenu(this, b.imgThreeDots);
 
             // Inflate menu items or add them programmatically
-            popupMenu.getMenu().add("Schedule");
-            popupMenu.getMenu().add("More Details");
+            popupMenu.getMenu().add(R.string.schedule);
+            popupMenu.getMenu().add(R.string.more_details);
 
             // Set a click listener for menu items
             popupMenu.setOnMenuItemClickListener(item -> {
                 String title = item.getTitle().toString();
+                String moreDetailsText = getString(R.string.more_details);
 
-                if (title.equals("Schedule")) {
+                if (title.equals(getString(R.string.schedule))) {
                     // Handle "Schedule" action
                     Toast.makeText(this, "Schedule clicked", Toast.LENGTH_SHORT).show();
                     return true;
-                } else if (title.equals("More Details")) {
+                } else if (title.equals(moreDetailsText)) {
                     // Handle "More Details" action - redirect to another activity
                     Intent intent = new Intent(this, ContactDetailsActivity.class);
                     intent.putExtra("name", senderAddress);
@@ -165,6 +169,7 @@ public class MessageActivity extends AppCompatActivity {
                 }
                 return false;
             });
+
 
             // Show the PopupMenu
             popupMenu.show();
@@ -212,13 +217,11 @@ public class MessageActivity extends AppCompatActivity {
                 phoneNumber = PhoneNumberUtils.formatNumberToE164(phoneNumber, "IN"); // देश कोड सेट करें
             }
 
-            // ब्लॉक किए गए नंबर की लिस्ट को पढ़ें
             SharedPreferences preferences = getSharedPreferences("BlockedContacts", MODE_PRIVATE);
             String blockedContactsJson = preferences.getString("blockedContacts", "[]");
             ArrayList<SmsModel> blockedContacts = new Gson().fromJson(blockedContactsJson, new TypeToken<ArrayList<SmsModel>>() {
             }.getType());
 
-            // चेक करें कि क्या यह नंबर ब्लॉक किया गया है
             boolean isBlocked = false;
             for (SmsModel blockedContact : blockedContacts) {
                 if (blockedContact.getSender().equals(phoneNumber)) {
@@ -228,8 +231,8 @@ public class MessageActivity extends AppCompatActivity {
             }
 
             if (isBlocked) {
-                runOnUiThread(() -> Toast.makeText(this, "यह नंबर ब्लॉक है, मैसेज नहीं दिखाया जाएगा", Toast.LENGTH_SHORT).show());
-                return; // अगर नंबर ब्लॉक किया गया है, तो मैसेज लोड न करें
+                runOnUiThread(() -> Toast.makeText(MessageActivity.this, R.string.this_number_is_blocked_the_message_will_not_be_shown, Toast.LENGTH_SHORT).show());
+                return;
             }
 
             Cursor cursor = cr.query(Uri.parse("content://sms/"), null, phoneNumber != null ? "address = ?" : "address LIKE ?", phoneNumber != null ? new String[]{phoneNumber} : new String[]{"%" + senderAddress + "%"}, "date ASC");
@@ -284,7 +287,7 @@ public class MessageActivity extends AppCompatActivity {
         }
 
         if (phoneNumber == null || phoneNumber.isEmpty()) {
-            Toast.makeText(this, "अमान्य फोन नंबर", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MessageActivity.this, R.string.invalid_phone_number, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -303,8 +306,8 @@ public class MessageActivity extends AppCompatActivity {
         }
 
         if (isBlocked) {
-            Toast.makeText(this, "आप इस नंबर को ब्लॉक कर चुके हैं, मैसेज नहीं भेजा जा सकता", Toast.LENGTH_SHORT).show();
-            return; // अगर नंबर ब्लॉक किया गया है, तो मैसेज भेजने से रोकें
+            Toast.makeText(this, string.you_have_already_blocked_this_number_messages_cannot_be_sent, Toast.LENGTH_SHORT).show();
+            return;
         }
 
         try {
@@ -321,14 +324,14 @@ public class MessageActivity extends AppCompatActivity {
             messageAdapter.notifyItemInserted(messagesList.size() - 1);
             b.rcvMassage.smoothScrollToPosition(messagesList.size() - 1);
             b.etEditText.getText().clear();
-            Toast.makeText(this, "मैसेज सफलतापूर्वक भेजा गया", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, message_sent_successfully, Toast.LENGTH_SHORT).show();
 
             Intent resultIntent = new Intent();
             resultIntent.putExtra("refresh", true);
             setResult(RESULT_OK, resultIntent);
 
         } catch (Exception e) {
-            Toast.makeText(this, "मैसेज भेजने में विफलता: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(string.failed_to_send_message) + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -357,6 +360,7 @@ public class MessageActivity extends AppCompatActivity {
         setResult(RESULT_OK, resultIntent);
         super.onBackPressed();
     }
+
     private void resetScheduledSMSAlarms() {
         SharedPreferences preferences = getSharedPreferences("ScheduledSMS", MODE_PRIVATE);
         Map<String, ?> allEntries = preferences.getAll();

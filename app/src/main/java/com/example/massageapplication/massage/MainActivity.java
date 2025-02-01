@@ -1,5 +1,7 @@
 package com.example.massageapplication.massage;
 
+import static com.example.massageapplication.R.string.no_items_selected;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.role.RoleManager;
@@ -125,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                         b.mainArchiveLayout.setVisibility(View.GONE);
                         b.llOne.setVisibility(View.VISIBLE);
                     } else {
-                        Toast.makeText(MainActivity.this, "No items selected", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, no_items_selected, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -133,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("SetTextI18n")
             @Override
             public void onSelectionCountChanged(int count, SmsModel smsModel) {
-                b.layArchive.tvSelected.setText(count + " " + "Selected");
+                b.layArchive.tvSelected.setText(count + " " + getString(R.string.selected));
             }
         });
 
@@ -266,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
                 if (smsPermissionGranted && contactsPermissionGranted) {
                     loadMessages(); // Load messages immediately after permissions are granted
                 } else {
-                    Toast.makeText(this, "Permissions are required to access messages and contacts.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.permissions_are_required_to_access_messages_and_contacts, Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -454,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
                 if (o.getResultCode() == Activity.RESULT_OK) {
                     loadMessages();
                 } else {
-                    Toast.makeText(MainActivity.this, "Faied!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, R.string.failed, Toast.LENGTH_SHORT).show();
                 }
             }
         });

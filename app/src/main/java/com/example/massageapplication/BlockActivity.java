@@ -44,17 +44,15 @@ public class BlockActivity extends AppCompatActivity {
         imgBack = findViewById(R.id.imgBack);
         linNoData = findViewById(R.id.linNoData);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        // ब्लॉक किए गए उपयोगकर्ताओं को लोड करें और प्रदर्शित करें
         blockedMessagesList = loadBlockedMessages();
         adapter = new BlockedAdapter(this, blockedMessagesList);
         recyclerView.setAdapter(adapter);
         if (blockedMessagesList.isEmpty()) {
-            recyclerView.setVisibility(View.GONE); // RecyclerView को छिपाएं
-            linNoData.setVisibility(View.VISIBLE); // "No Data" TextView को दिखाएं
+            recyclerView.setVisibility(View.GONE);
+            linNoData.setVisibility(View.VISIBLE);
         } else {
-            recyclerView.setVisibility(View.VISIBLE); // RecyclerView को दिखाएं
-            linNoData.setVisibility(View.GONE); // "No Data" TextView को छिपाएं
+            recyclerView.setVisibility(View.VISIBLE);
+            linNoData.setVisibility(View.GONE);
         }
 
         adapter.setOnItemClickListener(new BlockedAdapter.OnItemClickListener() {
@@ -98,8 +96,8 @@ public class BlockActivity extends AppCompatActivity {
         ArrayList<SmsModel> blockedMessages = new ArrayList<>();
         for (SmsModel message : allMessages) {
             if (message.isBlocked()) {
-                String contactName = getContactName(message.getSender()); // Get contact name
-                message.setSender(contactName); // Update sender with contact name
+                String contactName = getContactName(message.getSender());
+                message.setSender(contactName);
                 blockedMessages.add(message);
             }
         }
@@ -136,21 +134,21 @@ public class BlockActivity extends AppCompatActivity {
         Intent resultIntent = new Intent();
         resultIntent.putExtra("refresh", true);
         setResult(RESULT_OK,resultIntent);
-        Toast.makeText(BlockActivity.this, smsModel.getSender() + " has been unblocked.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(BlockActivity.this, smsModel.getSender() + getString(R.string.has_been_unblocked), Toast.LENGTH_SHORT).show();
         finish();
     }
 
     private void showConfirmationDialog(SmsModel smsModel) {
         new AlertDialog.Builder(this)
-                .setMessage("Are you sure you want to unblock this user?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                .setMessage(R.string.are_you_sure_you_want_to_unblock_this_user)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         unblockUser(smsModel);
                         ivUnBlock.setVisibility(View.GONE);
                     }
                 })
-                .setNegativeButton("No", null)
+                .setNegativeButton(R.string.no, null)
                 .create()
                 .show();
     }

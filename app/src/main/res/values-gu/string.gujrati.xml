@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Massage Application</string>
+    <string name="message">સંદેશ</string>
+    <string name="message_app_for_instant_and_secure_communication">તમારા વિશ્વમાં, એક સંદેશ દૂર</string>
+    <string name="archive">આર્કાઇવ</string>
+    <string name="block_message">સંદેશ અવરોધિત કરો</string>
+    <string name="schedule_message">સંદેશનું કાર્યક્રમ બનાવો</string>
+    <string name="language">ભાષા</string>
+    <string name="share_app">એપ્લિકેશન શેર કરો</string>
+    <string name="rate_us">અમને રેટ કરો</string>
+    <string name="privacy">ગોપનીયતા</string>
+    <string name="done" translatable="false">હું શરુ કરીશ</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment" translatable="false">હેલો બ્લેન્ક ફ્રેગમેન્ટ</string>
+
+    <string name="selected">ચયન કરવામાં આવ્યું</string>
+    <string name="no_items_selected">કોઈ વસ્તુઓ પસંદ કરવામાં આવી નથી</string>
+    <string name="permissions_are_required_to_access_messages_and_contacts">સંદેશ અને સંપર્કોમાં પહોંચવા માટે પરવાનગી જરૂરી છે</string>
+    <string name="failed">વિફલ</string>
+    <string name="write_a_massages">સંદેશ લખો</string>
+    <string name="no_data_found">કોઈ ડેટા મળ્યો નથી</string>
+    <string name="search">શોધો</string>
+    <string name="sms_scheduled_successfully">એસએમએસ સફળતાપૂર્વક યાદીબદ્ધ કર્યો</string>
+    <string name="sender_address_is_missing">પ્રેષકનો સરનામું ગુમાવાયું છે</string>
+    <string name="please_enter_a_message">કૃપા કરી સંદેશ દાખલ કરો</string>
+    <string name="schedule">સંપૂર્ણ કરો</string>
+    <string name="more_details">વિસ્તૃત વિગતો</string>
+    <string name="this_number_is_blocked_the_message_will_not_be_shown">આ નંબર અવરોધિત છે, સંદેશ દર્શાવાતા નહીં</string>
+    <string name="invalid_phone_number">ખોટું ફોન નંબર</string>
+    <string name="you_have_already_blocked_this_number_messages_cannot_be_sent">તમે આ નંબરને અગાઉ અવરોધિત કર્યું છે, સંદેશો મોકલવામાં આવી શકતા નથી</string>
+    <string name="message_sent_successfully">સંદેશ સફળતાપૂર્વક મોકલ્યો</string>
+    <string name="failed_to_send_message">સંદેશ મોકલવામાં નિષ્ફળ</string>
+    <string name="you_cannot_select_more_than_3_items">તમે 3 થી વધુ વસ્તુઓ પસંદ કરી શકો છો નહીં</string>
+    <string name="you_cannot_pin_more_than_3_senders">તમે 3 થી વધુ પ્રેષક પિન કરી શકો છો નહીં</string>
+    <string name="has_been_unblocked">ને અનબ્લોક કરવામાં આવ્યું છે</string>
+    <string name="are_you_sure_you_want_to_unblock_this_user">શું તમે ખાતરી કરો છો કે તમે આ વપરાશકર્તાને અનબ્લોક કરવાનું માંગો છો?</string>
+    <string name="yes">હા</string>
+    <string name="no">ના</string>
+    <string name="please_select_language_first">કૃપા કરી પહેલા ભાષા પસંદ કરો</string>
+    <string name="are_you_sure_you_want_to_unarchive_this_user">શું તમે ખાતરી કરો છો કે તમે આ વપરાશકર્તાને અનઆર્કાઇવ કરવું માંગો છો?</string>
+    <string name="has_been_unarchived">ને અનઆર્કાઇવ કરવામાં આવ્યું છે</string>
+    <string name="block">અવરોધ</string>
+    <string name="this_contact_is_already_blocked">આ સંપર્ક પહેલેથી જ અવરોધિત છે</string>
+    <string name="this_contact_is_already_archive">આ સંપર્ક પહેલેથી જ આર્કાઇવ છે</string>
+    <string name="block_contact">સંપર્ક અવરોધિત કરો</string>
+    <string name="are_you_sure_you_want_to_block_this_contact">શું તમે ખાતરી કરો છો કે તમે આ સંપર્કને અવરોધિત કરવું માંગો છો?</string>
+    <string name="archive_contact">સંપર્ક આર્કાઇવ કરો</string>
+    <string name="are_you_sure_you_want_to_archive_this_contact">શું તમે ખાતરી કરો છો કે તમે આ સંપર્કને આર્કાઇવ કરવું માંગો છો?</string>
+    <string name="this_number_is_already_blocked">આ નંબર પહેલેથી જ અવરોધિત છે</string>
+    <string name="contact_has_been_blocked">સંપર્ક અવરોધિત કરવામાં આવ્યો છે</string>
+    <string name="this_is_a_already_archive">આ પહેલેથી જ આર્કાઇવ કરવામાં આવ્યું છે</string>
+    <string name="contact_has_been_archive">સંપર્ક આર્કાઇવ કરવામાં આવ્યો છે</string>
+    <string name="unblock">અનબ્લોક કરો</string>
+    <string name="unarchive">અનઆર્કાઇવ કરો</string>
+    <string name="permission_denied">પરવાનગી મંજુર કરવામાં આવી નથી</string>
+    <string name="enter_numbers">નંબર દાખલ કરો</string>
+    <string name="search_contacts">સંપર્ક શોધો</string>
+</resources>

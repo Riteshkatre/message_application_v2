@@ -135,7 +135,7 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="@dimen/_10ssp"
                 android:background="@null"
-                android:hint="Search..."
+                android:hint="@string/search"
                 android:imeOptions="actionDone"
                 android:inputType="text"
                 android:textColor="@color/black"
@@ -194,7 +194,7 @@
             android:layout_marginStart="@dimen/_5sdp"
             android:layout_toEndOf="@+id/imgCalender"
             android:background="@null"
-            android:hint="write a massages..." />
+            android:hint="@string/write_a_massages" />
 
         <ImageView
             android:id="@+id/imgAttachment"
@@ -238,7 +238,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_10sdp"
-            android:text="No Data Found"
+            android:text="@string/no_data_found"
             android:textColor="@color/black"
             android:textSize="@dimen/_20ssp"
             android:textStyle="bold"
