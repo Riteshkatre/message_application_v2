@@ -99,7 +99,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
         }
 
         // Add the contact to the blocked list
-        SmsModel blockedMessage = new SmsModel(phoneNumber, "Blocked", "", "", System.currentTimeMillis(), "Blocked");
+        SmsModel blockedMessage = new SmsModel(phoneNumber, "Blocked", "", "", System.currentTimeMillis(), "Blocked",null);
         blockedMessage.setBlocked(true);
         blockedContacts.add(blockedMessage);
         preferences.edit().putString("blockedContacts", new Gson().toJson(blockedContacts)).apply();
@@ -126,7 +126,7 @@ public class ContactDetailsActivity extends AppCompatActivity {
             }
         }
 
-        SmsModel archiveMessage = new SmsModel(phoneNumber, "Archive", "", "", System.currentTimeMillis(), "Archive");
+        SmsModel archiveMessage = new SmsModel(phoneNumber, "Archive", "", "", System.currentTimeMillis(), "Archive",null);
         archiveMessage.setArchive(true);
         archiveContacts.add(archiveMessage);
         preferences.edit().putString("archiveContacts", new Gson().toJson(archiveContacts)).apply();
@@ -202,18 +202,30 @@ public class ContactDetailsActivity extends AppCompatActivity {
     }
 
     private void makePhoneCall() {
-        String phoneNumber = getValidPhoneNumber();
-        if (phoneNumber == null || phoneNumber.trim().isEmpty()) {
-            Toast.makeText(this, invalid_phone_number, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
-            startActivity(new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phoneNumber)));
+        // Check if 'number' is not null and not empty
+        if (number != null && !number.trim().isEmpty()) {
+            Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + number));
+            if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                startActivity(callIntent);
+            } else {
+                requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
+            }
         } else {
-            requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
+            // If 'number' is null or empty, use 'name'
+            if (name != null && !name.trim().isEmpty()) {
+                Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + name));
+                if (checkSelfPermission(android.Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+                    startActivity(callIntent);
+                } else {
+                    requestPermissions(new String[]{android.Manifest.permission.CALL_PHONE}, 1);
+                }
+            } else {
+                // Handle the case where both number and name are null or empty
+                Toast.makeText(this, "No valid phone number or name to call", Toast.LENGTH_SHORT).show();
+            }
         }
     }
+
 
     private String getValidPhoneNumber() {
         return number != null && !number.trim().isEmpty() ? number : null;

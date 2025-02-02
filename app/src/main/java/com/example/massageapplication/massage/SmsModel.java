@@ -12,14 +12,25 @@ public class SmsModel  {
     private boolean isPinned;
     private boolean isArchive;
     private int originalPosition;
+    private Integer  color;
 
-    public SmsModel(String sender, String body, String date, String time, long dateMillis, String status) {
+    public SmsModel(String sender, String body, String date, String time, long dateMillis, String status,Integer  color) {
         this.sender = sender;
         this.body = body;
         this.date = date;
         this.time = time;
         this.dateMillis = dateMillis;
         this.status = status;
+        this.color = color;
+
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
     }
 
     public boolean isPinned() {

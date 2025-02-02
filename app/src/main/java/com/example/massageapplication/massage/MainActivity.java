@@ -105,11 +105,12 @@ public class MainActivity extends AppCompatActivity {
         }
         smsAdapter.setOnItemClickListener(new SmsAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(int position, SmsModel smsModel) {
+            public void onItemClick(int position, SmsModel smsModel, int color) {
                 if (smsAdapter.getSelectedItemCount() == 0) {
                     Intent intent = new Intent(MainActivity.this, MessageActivity.class);
                     intent.putExtra("address", smsModel.getSender());
                     intent.putExtra("date", smsModel.getSender());
+                    intent.putExtra("color", color);
                     sendSmsLauncher.launch(intent);
                 }
             }
@@ -302,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                     String timeStr = android.text.format.DateFormat.format("HH:mm", date).toString();
                     String name = getContactName(address);
 
-                    SmsModel newMessage = new SmsModel(name, body, dateStr, timeStr, dateMillis, "received");
+                    SmsModel newMessage = new SmsModel(name, body, dateStr, timeStr, dateMillis, "received",null);
 
                     // Check if the sender is blocked
                     boolean isBlocked = false;

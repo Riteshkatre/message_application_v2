@@ -145,7 +145,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginStart="@dimen/_20ssp"
-                android:text="Notification"
+                android:text="@string/notification"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_17ssp" />
 
@@ -226,7 +226,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginStart="@dimen/_20ssp"
-                android:text="Delete Convertion"
+                android:text="@string/delete_convertion"
                 android:textColor="@color/black"
                 android:textSize="@dimen/_17ssp" />
         </LinearLayout>

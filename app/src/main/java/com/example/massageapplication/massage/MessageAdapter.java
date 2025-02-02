@@ -75,7 +75,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 String initial = String.valueOf(sms.getSender().charAt(0)).toUpperCase();
                 ((OtherMessageViewHolder) holder).firstName.setText(initial);
 
-                int color = getColorForInitial(initial);
+                int color = sms.getColor();
 
                 ((OtherMessageViewHolder) holder).nameLay.setBackgroundResource(R.drawable.circle_background);
                 GradientDrawable background = (GradientDrawable) ((OtherMessageViewHolder) holder).nameLay.getBackground();

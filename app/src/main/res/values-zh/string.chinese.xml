@@ -56,4 +56,7 @@
     <string name="permission_denied">权限被拒绝</string>
     <string name="enter_numbers">输入号码</string>
     <string name="search_contacts">搜索联系人</string>
+    <string name="notification">通知</string>
+    <string name="delete_convertion">删除对话</string>
+
 </resources>

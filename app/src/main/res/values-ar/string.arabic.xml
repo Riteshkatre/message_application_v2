@@ -56,4 +56,7 @@
     <string name="permission_denied">Permiso denegado</string>
     <string name="enter_numbers">Ingresa números</string>
     <string name="search_contacts">Buscar contactos</string>
+    <string name="notification">إشعار</string>
+    <string name="delete_convertion">حذف المحادثة</string>
+
 </resources>

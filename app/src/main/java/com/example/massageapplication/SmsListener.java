@@ -121,7 +121,7 @@ public class SmsListener extends BroadcastReceiver {
         SmsModel receivedSms = new SmsModel(sender, messageBody,
                 android.text.format.DateFormat.format("yyyy-MM-dd", new Date(timestamp)).toString(),
                 android.text.format.DateFormat.format("HH:mm", new Date(timestamp)).toString(),
-                timestamp, "received");
+                timestamp, "received",null);
 
         if (context instanceof MainActivity) {
             MainActivity smsActivity = (MainActivity) context;

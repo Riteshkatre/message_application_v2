@@ -56,4 +56,7 @@
     <string name="permission_denied">પરવાનગી મંજુર કરવામાં આવી નથી</string>
     <string name="enter_numbers">નંબર દાખલ કરો</string>
     <string name="search_contacts">સંપર્ક શોધો</string>
+    <string name="notification">સૂચના</string>
+    <string name="delete_convertion">વાર્તાલાપ કાઢી નાખો</string>
+
 </resources>

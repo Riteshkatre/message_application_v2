@@ -56,4 +56,7 @@
     <string name="permission_denied">Permissão negada</string>
     <string name="enter_numbers">Digite números</string>
     <string name="search_contacts">Buscar contatos</string>
+    <string name="notification">Notificação</string>
+    <string name="delete_convertion">Excluir Conversa</string>
+
 </resources>

@@ -55,4 +55,6 @@
     <string name="permission_denied">Permission denied</string>
     <string name="enter_numbers">Enter numbers</string>
     <string name="search_contacts">Search contacts</string>
+    <string name="notification">Notification</string>
+    <string name="delete_convertion">Delete Convertion</string>
 </resources>

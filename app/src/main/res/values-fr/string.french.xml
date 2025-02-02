@@ -56,4 +56,7 @@
     <string name="permission_denied">Permission refusée</string>
     <string name="enter_numbers">Entrez des numéros</string>
     <string name="search_contacts">Rechercher des contacts</string>
+    <string name="notification">Notification</string>
+    <string name="delete_convertion">Supprimer la conversation</string>
+
 </resources>

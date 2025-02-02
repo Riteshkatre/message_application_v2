@@ -95,7 +95,8 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
                     toggleSelection(position);
                 } else {
                     if (listener != null) {
-                        listener.onItemClick(position, sms);
+                        int color = ((ColorStateList) holder.nameLay.getBackgroundTintList()).getDefaultColor();
+                        listener.onItemClick(position, sms,color);
                     }
                 }
             });
@@ -237,7 +238,7 @@ public class SmsAdapter extends RecyclerView.Adapter<SmsAdapter.SmsViewHolder> {
     }
 
     public interface OnItemClickListener {
-        void onItemClick(int position, SmsModel smsModel);
+        void onItemClick(int position, SmsModel smsModel,int color);
 
         void longClickListener(int position, SmsModel smsModel);
 

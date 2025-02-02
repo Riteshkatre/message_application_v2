@@ -54,6 +54,7 @@ public class MessageActivity extends AppCompatActivity {
     private String senderAddress;
     private String senderName;
     private String phoneNumber;
+    int color;
     private final ContentObserver smsObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
         @Override
         public void onChange(boolean selfChange) {
@@ -68,6 +69,47 @@ public class MessageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         b = ActivityMessageBinding.inflate(getLayoutInflater());
         setContentView(b.getRoot());
+
+
+
+        // Get sender info from Intent
+        senderAddress = getIntent().getStringExtra("address");
+        senderName = getIntent().getStringExtra("date");
+        color = getIntent().getIntExtra("color", Color.BLUE);
+
+
+        b.contactName.setText(senderAddress);
+        phoneNumber = getPhoneNumberFromContacts(senderAddress);
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            b.phoneNumber.setText(phoneNumber);
+        } else {
+            b.phoneNumber.setText("");
+        }
+        if (senderAddress != null && senderAddress.length() > 0) {
+            String initial = String.valueOf(senderAddress.charAt(0)).toUpperCase();
+            b.firstName.setText(initial);
+
+            // Set color for initial
+            b.nameLay.setBackgroundResource(R.drawable.circle_background);
+            GradientDrawable background = (GradientDrawable) b.nameLay.getBackground();
+            background.setColor(color);
+        }
+
+
+
+        // Initialize RecyclerView
+        b.rcvMassage.setLayoutManager(new LinearLayoutManager(this));
+        messageAdapter = new MessageAdapter(messagesList);
+        b.rcvMassage.setAdapter(messageAdapter);
+
+        b.imgBack.setOnClickListener(v -> onBackPressed());
+
+        // Load messages
+        if (senderAddress != null && !senderAddress.isEmpty()) {
+            loadMessagesFromSender();
+        } else {
+            Toast.makeText(MessageActivity.this, R.string.sender_address_is_missing, Toast.LENGTH_SHORT).show();
+        }
 
         b.imgCalender.setOnClickListener(v -> {
             ScheduleDialog scheduleDialog = new ScheduleDialog(phoneNumber);
@@ -91,42 +133,6 @@ public class MessageActivity extends AppCompatActivity {
             });
         });
 
-
-        // Get sender info from Intent
-        senderAddress = getIntent().getStringExtra("address");
-        senderName = getIntent().getStringExtra("date");
-
-        b.contactName.setText(senderAddress);
-        phoneNumber = getPhoneNumberFromContacts(senderAddress);
-        if (phoneNumber != null && !phoneNumber.isEmpty()) {
-            b.phoneNumber.setText(phoneNumber);
-        } else {
-            b.phoneNumber.setText("");
-        }
-        if (senderAddress != null && senderAddress.length() > 0) {
-            String initial = String.valueOf(senderAddress.charAt(0)).toUpperCase();
-            b.firstName.setText(initial);
-
-            // Set color for initial
-            int color = getColorForInitial(initial);
-            b.nameLay.setBackgroundResource(R.drawable.circle_background);
-            GradientDrawable background = (GradientDrawable) b.nameLay.getBackground();
-            background.setColor(color);
-        }
-
-        // Initialize RecyclerView
-        b.rcvMassage.setLayoutManager(new LinearLayoutManager(this));
-        messageAdapter = new MessageAdapter(messagesList);
-        b.rcvMassage.setAdapter(messageAdapter);
-
-        b.imgBack.setOnClickListener(v -> onBackPressed());
-
-        // Load messages
-        if (senderAddress != null && !senderAddress.isEmpty()) {
-            loadMessagesFromSender();
-        } else {
-            Toast.makeText(MessageActivity.this, R.string.sender_address_is_missing, Toast.LENGTH_SHORT).show();
-        }
 
         b.laySend.setOnClickListener(v -> {
             String messageText = b.etEditText.getText().toString().trim();
@@ -250,7 +256,7 @@ public class MessageActivity extends AppCompatActivity {
                     SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
                     String time = timeFormat.format(date);
 
-                    newMessagesList.add(new SmsModel(type.equals("received") ? senderName : "You", body, date.toString(), time, dateMillis, type));
+                    newMessagesList.add(new SmsModel(type.equals("received") ? senderName : "You", body, date.toString(), time, dateMillis, type,color));
                 }
                 cursor.close();
 
@@ -318,7 +324,7 @@ public class MessageActivity extends AppCompatActivity {
             String date = currentDate.toString();
             String time = date.substring(11, 19);
 
-            SmsModel newMessage = new SmsModel("You", messageText, date, time, System.currentTimeMillis(), "sent");
+            SmsModel newMessage = new SmsModel("You", messageText, date, time, System.currentTimeMillis(), "sent",color);
 
             messagesList.add(newMessage);
             messageAdapter.notifyItemInserted(messagesList.size() - 1);
@@ -335,11 +341,6 @@ public class MessageActivity extends AppCompatActivity {
         }
     }
 
-    private int getColorForInitial(String initial) {
-        int hash = Math.abs(initial.hashCode());
-        int[] colors = {Color.parseColor("#2b73ec")};
-        return colors[hash % colors.length];
-    }
 
     @Override
     protected void onResume() {

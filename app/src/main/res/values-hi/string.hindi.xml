@@ -56,4 +56,7 @@
     <string name="permission_denied">अनुमति अस्वीकृत</string>
     <string name="enter_numbers">संख्या दर्ज करें</string>
     <string name="search_contacts">संपर्क खोजें</string>
+    <string name="notification">सूचना</string>
+    <string name="delete_convertion">वार्तालाप हटाएं</string>
+
 </resources>

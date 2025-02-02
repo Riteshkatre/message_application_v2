@@ -34,7 +34,7 @@ public class MmsReciever extends BroadcastReceiver {
                         String timestamp = String.valueOf(sms.getTimestampMillis());
 
                         // Correct constructor call
-                        SmsModel newMessage = new SmsModel(sender, messageBody, timestamp, "", System.currentTimeMillis(), "");
+                        SmsModel newMessage = new SmsModel(sender, messageBody, timestamp, "", System.currentTimeMillis(), "",null);
 
                         // Notify the listener (Archive Activity)
                         if (messageListener != null) {
