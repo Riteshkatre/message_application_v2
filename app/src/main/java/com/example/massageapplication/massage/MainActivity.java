@@ -3,7 +3,6 @@ package com.example.massageapplication.massage;
 import static com.example.massageapplication.R.string.no_items_selected;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.role.RoleManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -58,6 +57,8 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE = 100;
+    private static final String APP_PREFERENCES = "AppPreferences";
+    private static final String PREF_DEFAULT_SMS_REQUESTED = "defaultSmsRequested";
     private final ArrayList<SmsModel> smsList = new ArrayList<>();
     private final Map<String, String> contactCache = new HashMap<>();
     private final Object smsListLock = new Object(); // Add lock object
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
         boolean isDarkMode = sharedPreferences.getBoolean("isDarkMode", false);
         setTheme(isDarkMode ? R.style.DarkTheme : R.style.LightTheme);
 
@@ -89,19 +90,22 @@ public class MainActivity extends AppCompatActivity {
         b.messagesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         smsAdapter = new SmsAdapter(smsList,this);
         b.messagesRecyclerView.setAdapter(smsAdapter);
-        SharedPreferences preferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
         boolean isFirstTime = preferences.getBoolean("isFirstTime", true);
         prepareIntentLauncher();
         if (isFirstTime) {
-//            requestDefaultSmsRole();
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean("isFirstTime", false); // Update the flag to false after the first run
+            editor.putBoolean("isFirstTime", false);
             editor.apply();
         }
-        if (!isDefaultSmsApp()) {
-//            requestDefaultSmsApp();
+        if (shouldRequestDefaultSmsRole()) {
+            requestDefaultSmsRole();
+        } else if (isDefaultSmsApp()) {
+            if (hasRequiredPermissions()) {
+                loadMessages();
+            }
         } else {
-            loadMessages();
+            promptToSetDefaultSmsApp();
         }
         smsAdapter.setOnItemClickListener(new SmsAdapter.OnItemClickListener() {
             @Override
@@ -201,7 +205,9 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions();
         } else {
-            loadMessages(); // Load messages immediately if permissions are granted
+            if (isDefaultSmsApp()) {
+                loadMessages();
+            }
         }
 
         b.ivSearchMsg.setOnClickListener(new View.OnClickListener() {
@@ -383,7 +389,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (isDefaultSmsApp()) {
+        if (isDefaultSmsApp() && hasRequiredPermissions()) {
             loadMessages();
         }
     }
@@ -431,6 +437,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestDefaultSmsRole() {
+        SharedPreferences preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
+        preferences.edit().putBoolean(PREF_DEFAULT_SMS_REQUESTED, true).apply();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             RoleManager roleManager = getSystemService(RoleManager.class);
             boolean isRoleAvailable = roleManager.isRoleAvailable(RoleManager.ROLE_SMS);
@@ -439,14 +448,15 @@ public class MainActivity extends AppCompatActivity {
                 if (!isRoleHeld) {
                     intentActivityResultLauncher.launch(roleManager.createRequestRoleIntent(RoleManager.ROLE_SMS));
                 } else {
-                    Toast.makeText(this, "role is not available for this app", Toast.LENGTH_LONG).show();
+                    if (hasRequiredPermissions()) {
+                        loadMessages();
+                    }
                 }
+            } else {
+                promptToSetDefaultSmsApp();
             }
         } else {
-            Toast.makeText(this, "permission not executed", Toast.LENGTH_LONG).show();
-            Intent intent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
-            intent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, getPackageName());
-            startActivityForResult(intent, 1001);
+            requestDefaultSmsApp();
         }
     }
 
@@ -454,13 +464,32 @@ public class MainActivity extends AppCompatActivity {
         intentActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<>() {
             @Override
             public void onActivityResult(ActivityResult o) {
-                if (o.getResultCode() == Activity.RESULT_OK) {
-                    loadMessages();
+                if (isDefaultSmsApp()) {
+                    if (hasRequiredPermissions()) {
+                        loadMessages();
+                    }
                 } else {
                     Toast.makeText(MainActivity.this, R.string.failed, Toast.LENGTH_SHORT).show();
                 }
             }
         });
+    }
+
+    private boolean hasRequiredPermissions() {
+        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean shouldRequestDefaultSmsRole() {
+        SharedPreferences preferences = getSharedPreferences(APP_PREFERENCES, MODE_PRIVATE);
+        boolean alreadyRequested = preferences.getBoolean(PREF_DEFAULT_SMS_REQUESTED, false);
+        return !alreadyRequested && !isDefaultSmsApp();
+    }
+
+    private void promptToSetDefaultSmsApp() {
+        if (!isDefaultSmsApp()) {
+            Toast.makeText(this, "Please set this app as your default SMS app to access messages.", Toast.LENGTH_LONG).show();
+        }
     }
 
     public void addReceivedMessageToList(SmsModel newSms) {
