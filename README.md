@@ -35,51 +35,31 @@ An Android SMS and messaging manager built with Java. The app supports sending a
 
 ## Screenshots
 
-Put the screenshot files in a `screenshots/` folder at the project root and keep the filenames below. Each image is displayed at `200x400`.
+Each screenshot below is displayed at `200x400`.
 
 ### Splash Screen
 
-<img src="screenshots/splash-screen.png" alt="Splash Screen" width="200" height="400" />
+<img src="screenshots/splash-screen.jpeg" alt="Splash Screen" width="200" height="400" />
 
 ### Language Selection
 
-<img src="screenshots/language-selection.png" alt="Language Selection Screen" width="200" height="400" />
+<img src="screenshots/language-selection.jpeg" alt="Language Selection Screen" width="200" height="400" />
+
+### Default SMS Prompt
+
+<img src="screenshots/default-sms-popup.jpeg" alt="Default SMS Selection Popup" width="200" height="400" />
+
+### Drawer Menu
+
+<img src="screenshots/drawer-menu.jpeg" alt="Drawer Menu Screen" width="200" height="400" />
+
+### New Conversation
+
+<img src="screenshots/new-conversation.jpeg" alt="New Conversation Screen" width="200" height="400" />
 
 ### Main Messages Screen
 
-<img src="screenshots/main-screen.png" alt="Main Messages Screen" width="200" height="400" />
-
-### Message Chat Screen
-
-<img src="screenshots/message-screen.png" alt="Message Chat Screen" width="200" height="400" />
-
-### Contacts Screen
-
-<img src="screenshots/contacts-screen.png" alt="Contacts Screen" width="200" height="400" />
-
-### Contact Details Screen
-
-<img src="screenshots/contact-details-screen.png" alt="Contact Details Screen" width="200" height="400" />
-
-### Search Screen
-
-<img src="screenshots/search-screen.png" alt="Search Screen" width="200" height="400" />
-
-### Schedule Screen
-
-<img src="screenshots/schedule-screen.png" alt="Schedule Screen" width="200" height="400" />
-
-### Block Screen
-
-<img src="screenshots/block-screen.png" alt="Block Screen" width="200" height="400" />
-
-### Block Messages Screen
-
-<img src="screenshots/block-messages-screen.png" alt="Block Messages Screen" width="200" height="400" />
-
-### Archive Screen
-
-<img src="screenshots/archive-screen.png" alt="Archive Screen" width="200" height="400" />
+<img src="screenshots/main-messages.jpeg" alt="Main Messages Screen" width="200" height="400" />
 
 ## Setup
 
@@ -94,4 +74,3 @@ Put the screenshot files in a `screenshots/` folder at the project root and keep
 - The project name in the app is `Massage Application`.
 - The app uses Google Mobile Ads test IDs in the language selection screen.
 - Some screens depend on runtime permissions and default-SMS behavior.
-
